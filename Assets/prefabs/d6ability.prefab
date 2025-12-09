@@ -10,23 +10,23 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3.81
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.77
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2.09
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.26807916
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.96339685
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_LocalRotation.y
@@ -38,7 +38,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -211.1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -50,7 +50,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       propertyPath: m_Name
-      value: d6ability (1)
+      value: d6ability
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -62,6 +62,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
       insertIndex: -1
       addedObject: {fileID: 257502348926316413}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -7781999114097801398}
   m_SourcePrefab: {fileID: 100100000, guid: aeaf4ba0e8e4ea149b4c762ded313030, type: 3}
 --- !u!1 &3561994361602619991 stripped
 GameObject:
@@ -116,3 +119,15 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.006430361, y: 0.0064303577, z: 0.0064303596}
   m_Center: {x: 0, y: 0, z: -1.164153e-10}
+--- !u!114 &-7781999114097801398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3561994361602619991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1106ec5f40c54bbf98594292d03d8494, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Data.AbilityDie
