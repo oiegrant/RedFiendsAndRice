@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Data
 {
     public struct FaceData
@@ -9,7 +11,7 @@ namespace Data
 
     public struct DiceSet
     {
-        public AbilityDie[] abilityDice;
-        public MultiDie[] multiDice;
+        public List<AbilityDie> abilityDice;
+        public List<MultiDie> multiDice;
     }
 }

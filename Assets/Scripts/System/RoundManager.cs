@@ -3,30 +3,32 @@ using System.Collections.Generic;
 using Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.UI;
 
 namespace System
 {
+    //A Round is the combat loop, where the player rolls dice to enact abilities, followed by enemy attack/ability
+    //A Round ends when either the enemy or player is dead
+    //There are no upgrades that occur during a round, the number of dice in the players set will be the same at the start and end of a round
+    
     public class RoundManager : MonoBehaviour
     { 
         private InputSystem_Actions playerInputSystem;
-        
-        [Header("Dice")]
-        [SerializeField] private List<MultiDie> dice = new List<MultiDie>();
-        
-        [Header("UI")]
-        [SerializeField] private UIManager uiManager;
+
+        private DiceSet diceSet;
     
         [Header("Settings")]
         [SerializeField] private float velocityThreshold = 0.1f;
         [SerializeField] private float angularVelocityThreshold = 0.1f;
         [SerializeField] private float settleCheckInterval = 0.1f;
     
-        private bool waitingForInput = false;
+        private bool waitingForInput = true;
         private bool isProcessingRound = false;
 
         private void Awake()
         {
             playerInputSystem = new InputSystem_Actions();
+            Debug.unityLogger.logEnabled = true;
         }
 
         private void OnEnable()
@@ -44,6 +46,7 @@ namespace System
         
         private void spacePressed(InputAction.CallbackContext context)
         {
+            Debug.Log("spacePressed");
             if (waitingForInput)
             {
                 waitingForInput = false;
@@ -53,16 +56,17 @@ namespace System
         // Main entry point called by GameManager
         public IEnumerator StartRound(DiceSet diceSet, System.Action<RoundResult> onRoundComplete)
         {
+            Debug.Log("Starting round");
+            this.diceSet = diceSet;
             // Setup round
-        
-            // Spawn dice
-            // SpawnDice(dicePrefabs);
-        
+            
             // Setup enemy with appropriate difficulty
             // Initialize enemy
         
             // Run the game loop
             yield return StartCoroutine(GameLoop());
+            
+            Debug.Log("Finished round");
         
             // Create result
             RoundResult result = new RoundResult();
@@ -76,29 +80,28 @@ namespace System
             // onRoundComplete?.Invoke(result);
         }
         
-        private void Start()
-        {
-            StartCoroutine(GameLoop());
-        }
-        
         private IEnumerator GameLoop()
         {
-            while (true) //enemy alive 
+            isProcessingRound = true;
+            while (isProcessingRound) //enemy alive 
             {
-                isProcessingRound = true;
                 // Wait for player input
                 waitingForInput = true;
-                yield return new WaitUntil(() => !waitingForInput);
+
+                while (waitingForInput)
+                {
+                    yield return null;
+                }
                 
                 // Roll dice
-                // RollAllDice(dice);
+                StartCoroutine(RollAllDice());
             
                 // Wait for dice to settle and get results
-                Dictionary<int, int> diceResults = null;
-                yield return StartCoroutine(WaitForDiceToSettle(results => diceResults = results));
+                // Dictionary<int, int> diceResults = null;
+                // yield return StartCoroutine(WaitForDiceToSettle(results => diceResults = results));
             
                 // Calculate score using the results from the coroutine
-                int totalScore = CalculateScore(diceResults);
+                // int totalScore = CalculateScore(diceResults);
             
                 // Show score animation
                 // yield return StartCoroutine(uiManager.AnimateScore(totalScore));
@@ -115,12 +118,12 @@ namespace System
                 // }
             
                 // Enemy attack
-                yield return new WaitForSeconds(0.5f);
+                // yield return new WaitForSeconds(0.5f);
             
                 // Reset dice positions
-                ResetAllDice();
+                // ResetAllDice();
             
-                yield return new WaitForSeconds(1f);
+                // yield return new WaitForSeconds(1f);
             
                 isProcessingRound = false;
             }
@@ -133,9 +136,24 @@ namespace System
             throw new NotImplementedException();
         }
 
-        private void RollAllDice()
+        private IEnumerator RollAllDice()
         {
-            //TODO dice roll logic
+            Debug.Log("Rolling all dice!!");
+            // Roll ability dice
+            foreach (var diceSetAbilityDie in diceSet.abilityDice)
+            {
+                diceSetAbilityDie.rb.isKinematic = false;
+                diceSetAbilityDie.rb.AddForce(Vector3.left * 3, ForceMode.Impulse);
+                // diceSetAbilityDie.rb.AddTorque(UnityEngine.Random.insideUnitSphere * 5, ForceMode.Impulse);
+            }
+            
+            foreach (var multiDie in diceSet.multiDice)
+            {
+                multiDie.rb.isKinematic = false;
+                multiDie.rb.AddForce(Vector3.left * 3, ForceMode.Impulse);
+                // multiDie.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 5, ForceMode.Impulse);
+                yield return new WaitForSeconds(0.3f); // Wait 1 second before next die
+            }
         }
         
         private bool AllDiceSettled()
@@ -175,6 +193,10 @@ namespace System
         {
             //TODO put all dice back in their starting position
         }
-        
+
+        public void Initialize()
+        {
+            //TODO initialize round specific data (enemy, etc.)
+        }
     }
 }
