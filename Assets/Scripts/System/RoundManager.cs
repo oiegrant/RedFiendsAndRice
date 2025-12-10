@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -20,6 +21,9 @@ namespace System
         [SerializeField] private float velocityThreshold = 0.1f;
         [SerializeField] private float angularVelocityThreshold = 0.1f;
         [SerializeField] private float settleCheckInterval = 0.1f;
+        [SerializeField] private float restThreshold = 0.1f; // Velocity threshold to consider "at rest"
+        [SerializeField] private float restTime = 0.1f; // How long it must be still before considered at rest
+
     
         private bool waitingForInput = true;
         private bool isProcessingRound = false;
@@ -33,19 +37,18 @@ namespace System
         private void OnEnable()
         {
             playerInputSystem.Enable();
-            playerInputSystem.Player.Attack.started += spacePressed;
+            playerInputSystem.Player.Space.started += spacePressed;
         }
 
         private void OnDisable()
         {
-            playerInputSystem.Player.Attack.started -= spacePressed;
+            playerInputSystem.Player.Space.started -= spacePressed;
             playerInputSystem.Disable();
 
         }
         
         private void spacePressed(InputAction.CallbackContext context)
         {
-            Debug.Log("spacePressed");
             if (waitingForInput)
             {
                 waitingForInput = false;
@@ -94,17 +97,25 @@ namespace System
                 
                 // Roll dice
                 StartCoroutine(RollAllDice());
-            
+                
                 // Wait for dice to settle and get results
-                // Dictionary<int, int> diceResults = null;
-                // yield return StartCoroutine(WaitForDiceToSettle(results => diceResults = results));
-            
+                //diceId, faceindex
+                yield return StartCoroutine(WaitForDiceToSettle());
+                
+                Dictionary<byte,int> faceUpMultiValues = GetDiceFaceUpMap();
+                
+                int faceIdx = FaceUpCalculator.GetUpwardFace(diceSet.abilityDice[0].gameObject);
+                AbilityType ability = diceSet.abilityDice[0].faceData[faceIdx].abilityType;
+                Debug.Log("Ability" + ability);
+
+
                 // Calculate score using the results from the coroutine
-                // int totalScore = CalculateScore(diceResults);
-            
+                int totalScore = CalculateScore(faceUpMultiValues);
+                Debug.Log("Total Sum" + totalScore);
+
                 // Show score animation
                 // yield return StartCoroutine(uiManager.AnimateScore(totalScore));
-            
+
                 // Apply damage to enemy
                 // enemy.TakeDamage(totalScore);
                 // uiManager.UpdateEnemyHealth(enemy.CurrentHealth, enemy.MaxHealth);
@@ -115,15 +126,15 @@ namespace System
                 //     uiManager.ShowVictory();
                 //     break;
                 // }
-            
+
                 // Enemy attack
                 // yield return new WaitForSeconds(0.5f);
-            
+
                 // Reset dice positions
                 // ResetAllDice();
-            
+
                 // yield return new WaitForSeconds(1f);
-            
+
                 //Need to check if all dice are rolled, then it can proceed with round closure
                 // isProcessingRound = false;
             }
@@ -131,9 +142,14 @@ namespace System
             Debug.Log("Round Over");
         }
 
-        private int CalculateScore(Dictionary<int, int> diceResults)
+        private int CalculateScore(Dictionary<byte,int> faceUpMultiValues)
         {
-            throw new NotImplementedException();
+            int result = 0;
+            foreach (var multiDie in diceSet.multiDice)
+            {
+                result += faceUpMultiValues[multiDie.diceId];
+            }
+            return result;
         }
 
         private IEnumerator RollAllDice()
@@ -148,11 +164,9 @@ namespace System
                 yield return new WaitForSeconds(0.2f); // Wait 1 second before next die
             }
 
-            int i = 0;
+            
             foreach (var multiDie in diceSet.multiDice)
             {
-                i++;
-                Debug.Log("Rolling multi dice " + i);
                 multiDie.rb.isKinematic = false;
                 multiDie.rb.AddForce(getRandomLaunchAngle() * 2500, ForceMode.Impulse);
                 multiDie.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 500, ForceMode.Impulse);
@@ -179,35 +193,55 @@ namespace System
         
         private bool AllDiceSettled()
         {
-            //TODO check if all dice settled
-            return false;
+            bool allSettled = true;
+            foreach (var diceSetAbilityDie in diceSet.abilityDice)
+            {
+                if (diceSetAbilityDie.rb.linearVelocity.magnitude > velocityThreshold ||
+                    diceSetAbilityDie.rb.angularVelocity.magnitude > angularVelocityThreshold)
+                {
+                    allSettled = false;
+                    break;
+                }
+
+            }
+
+
+            foreach (var multiDie in diceSet.multiDice)
+            {
+                if (multiDie.rb.linearVelocity.magnitude > velocityThreshold ||
+                    multiDie.rb.angularVelocity.magnitude > angularVelocityThreshold)
+                {
+                    allSettled = false;
+                    break;
+                }
+            }
+            
+            return allSettled;
         }
         
-        private IEnumerator WaitForDiceToSettle(System.Action<Dictionary<int, int>> onComplete)
+        private IEnumerator WaitForDiceToSettle()
         {
+            yield return new WaitForSeconds(0.5f);
+            
             // Check periodically if all dice have settled
             while (!AllDiceSettled())
             {
-                yield return new WaitForSeconds(0);
+                yield return new WaitForSeconds(0.1f);
             }
-            
-            // Get dice values and pass them back via callback
-            Dictionary<int, int> results = GetDiceValues();
-            onComplete?.Invoke(results);
+            Debug.Log("DiceSettled");
         }
         
-        private Dictionary<int, int> GetDiceValues()
+        private Dictionary<byte, int> GetDiceFaceUpMap()
         {
-            // Dictionary<int, int> results = new Dictionary<int, int>();
-            //
-            // for (int i = 0; i < dice.Count; i++)
-            // {
-            //     int faceValue = dice[i].GetFaceUpValue();
-            //     results[i] = faceValue;
-            //     Debug.Log($"Die {i}: {faceValue}");
-            // }
-        
-            return new Dictionary<int, int>();
+            Dictionary<byte, int> results = new Dictionary<byte, int>();
+            
+            foreach (var multiDie in diceSet.multiDice)
+            {
+                int faceIdx = FaceUpCalculator.GetUpwardFace(multiDie.gameObject);
+                results.Add(multiDie.diceId, faceIdx);
+            }
+            
+            return results;
         }
         
         private void ResetAllDice()

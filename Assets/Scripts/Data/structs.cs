@@ -9,6 +9,19 @@ namespace Data
         public int modifierValue;
     }
 
+    public enum AbilityType
+    {
+        Sword,
+        Coin,
+        Shield
+    }
+    
+    public struct AbilityFaceData
+    {
+        public int faceIndex;
+        public AbilityType abilityType;
+    }
+
     public struct DiceSet
     {
         public List<AbilityDie> abilityDice;

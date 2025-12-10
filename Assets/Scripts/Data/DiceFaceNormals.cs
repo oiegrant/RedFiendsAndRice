@@ -6,15 +6,14 @@ namespace Data
     {
         public static readonly Vector3[] D6 = new Vector3[]
         {
-            Vector3.forward,
-            Vector3.left,
-            Vector3.up,
-            Vector3.down,
-            Vector3.right,
-            Vector3.back
+            Vector3.forward, //gold
+            Vector3.left, //shield
+            Vector3.up, //sword
+            Vector3.down, //sword
+            Vector3.right, //shield
+            Vector3.back //gold
         };
     
-        // You can add other dice types too
         public static readonly Vector3[] D8 = new Vector3[]
         {
             new Vector3(1, 1, 1).normalized,

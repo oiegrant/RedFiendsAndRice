@@ -22,12 +22,17 @@ namespace System
             //initialize 2 multi die at a transform
             List<AbilityDie> abilityDice = new(); 
             List<MultiDie> multiDice = new();
+            byte idInitializer = 0;
 
             for (int i = 0; i < MetaUpgradeData.startingAbilityDieCount; i++)
             {
                 AbilityDie abilityDieInstance = Instantiate(abilityDiePrefab, abilityDiceSpawnPoints[i].position, Quaternion.identity);
                 abilityDieInstance.rb.isKinematic = true;
+                abilityDieInstance.diceId = idInitializer;
+                abilityDieInstance.initializeFaceData();
+                idInitializer++;
                 abilityDice.Add(abilityDieInstance);
+                
             }
 
             for (int i = 0; i < MetaUpgradeData.startingMultiDiceCount; i++)
@@ -35,6 +40,8 @@ namespace System
                 MultiDie multiDieInstance =
                     Instantiate(multiDiePrefab, multiDiceSpawnPoints[i].position, Quaternion.Euler(270, 0, 0)); 
                 multiDieInstance.rb.isKinematic = true;
+                multiDieInstance.diceId = idInitializer; 
+                idInitializer++;
                 multiDice.Add(multiDieInstance);
             }
 
