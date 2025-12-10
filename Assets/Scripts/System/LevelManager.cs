@@ -79,9 +79,9 @@ namespace System
         
         void Update()
         {
-            Debug.DrawRay(transform.position, Vector3.forward * 5f, Color.blue, 0.1f);
-            Debug.DrawRay(transform.position, Vector3.up * 5f, Color.green, 0.1f);
-            Debug.DrawRay(transform.position, Vector3.right  * 5f, Color.red, 0.1f);
+            // Debug.DrawRay(transform.position, Vector3.forward * 5f, Color.blue, 0.1f);
+            // Debug.DrawRay(transform.position, Vector3.up * 5f, Color.green, 0.1f);
+            // Debug.DrawRay(transform.position, Vector3.right  * 5f, Color.red, 0.1f);
         }
         
         

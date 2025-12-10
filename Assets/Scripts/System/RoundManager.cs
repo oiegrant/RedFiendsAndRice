@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering.UI;
 
 namespace System
 {
@@ -125,7 +124,8 @@ namespace System
             
                 // yield return new WaitForSeconds(1f);
             
-                isProcessingRound = false;
+                //Need to check if all dice are rolled, then it can proceed with round closure
+                // isProcessingRound = false;
             }
         
             Debug.Log("Round Over");
@@ -143,17 +143,38 @@ namespace System
             foreach (var diceSetAbilityDie in diceSet.abilityDice)
             {
                 diceSetAbilityDie.rb.isKinematic = false;
-                diceSetAbilityDie.rb.AddForce(Vector3.left * 3, ForceMode.Impulse);
-                // diceSetAbilityDie.rb.AddTorque(UnityEngine.Random.insideUnitSphere * 5, ForceMode.Impulse);
+                diceSetAbilityDie.rb.AddForce(getRandomLaunchAngle() * 2500, ForceMode.Impulse);
+                diceSetAbilityDie.rb.AddTorque(UnityEngine.Random.insideUnitSphere * 500, ForceMode.Impulse);
+                yield return new WaitForSeconds(0.2f); // Wait 1 second before next die
             }
-            
+
+            int i = 0;
             foreach (var multiDie in diceSet.multiDice)
             {
+                i++;
+                Debug.Log("Rolling multi dice " + i);
                 multiDie.rb.isKinematic = false;
-                multiDie.rb.AddForce(Vector3.left * 3, ForceMode.Impulse);
-                // multiDie.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 5, ForceMode.Impulse);
-                yield return new WaitForSeconds(0.3f); // Wait 1 second before next die
+                multiDie.rb.AddForce(getRandomLaunchAngle() * 2500, ForceMode.Impulse);
+                multiDie.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 500, ForceMode.Impulse);
+                yield return new WaitForSeconds(0.1f); // Wait 1 second before next die
             }
+        }
+
+        private Vector3 getRandomLaunchAngle()
+        {
+            // Vector3 launchDirection = (Vector3.left + Vector3.up).normalized;
+            // Vector3 launchDirection = (Vector3.left).normalized;
+            // launchDirection = Quaternion.AngleAxis(-20f, Vector3.up) * launchDirection;
+            Vector3 launchDirection = Vector3.Slerp(Vector3.left, Vector3.up, 10f / 90f).normalized;
+            // Add random rotation (±5 degrees) around the right axis (for up/down variation)
+            float randomPitch = UnityEngine.Random.Range(-5f, 5f);
+            launchDirection = Quaternion.AngleAxis(randomPitch, Vector3.right) * launchDirection;
+
+            // Add random rotation (±5 degrees) around the up axis (for front/back variation)
+            float randomYaw = UnityEngine.Random.Range(-5f, 5f);
+            launchDirection = Quaternion.AngleAxis(randomYaw, Vector3.up) * launchDirection;
+            
+            return launchDirection;
         }
         
         private bool AllDiceSettled()
