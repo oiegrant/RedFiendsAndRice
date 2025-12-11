@@ -127,7 +127,6 @@ namespace System
                     // StartCoroutine(AnimatePair(pair));
                 }
 
-                ability = AbilityType.Gold;
                 if (ability == AbilityType.Gold)
                 {
                     StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
@@ -139,7 +138,7 @@ namespace System
                 // Apply damage to enemy
                 // enemy.TakeDamage(totalScore);
                 // uiManager.UpdateEnemyHealth(enemy.CurrentHealth, enemy.MaxHealth);
-                //
+                
                 // Check if enemy is dead
                 // if (enemy.IsDead())
                 // {
@@ -151,12 +150,13 @@ namespace System
                 // yield return new WaitForSeconds(0.5f);
 
                 // Reset dice positions
-                // ResetAllDice();
+                ResetAllDice();
 
                 // yield return new WaitForSeconds(1f);
 
                 //Need to check if all dice are rolled, then it can proceed with round closure
                 // isProcessingRound = false;
+                waitingForInput = true;
             }
         
             Debug.Log("Round Over");
@@ -276,7 +276,6 @@ namespace System
 
         private IEnumerator DispenseGold(int newGoldCount)
         {
-            newGoldCount *= 5;
             if (currentGold + newGoldCount > MAX_GOLD_ON_TABLE)
             {
                 newGoldCount = MAX_GOLD_ON_TABLE - currentGold;
@@ -354,6 +353,7 @@ namespace System
         private void ResetAllDice()
         {
             //TODO put all dice back in their starting position
+            //DOTween
         }
 
         public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab)
