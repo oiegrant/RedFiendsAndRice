@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Data;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,6 +16,8 @@ namespace System
     { 
         private InputSystem_Actions playerInputSystem;
 
+        private Transform[] multiDiceSpawnPoints;
+        private Transform[] abilityDiceSpawnPoints;
         private Transform goldSpawnPoint;
         private GoldPiece goldPiecePrefab;
 
@@ -93,6 +96,8 @@ namespace System
             isProcessingRound = true;
             while (isProcessingRound) //enemy alive 
             {
+                AbilityDie abilityDie = diceSet.abilityDice[0];
+                
                 // Wait for player input
                 waitingForInput = true;
 
@@ -110,26 +115,27 @@ namespace System
                 
                 Dictionary<byte,int> faceUpMultiValues = GetDiceFaceUpMap();
                 
-                int faceIdx = FaceUpCalculator.GetUpwardFace(diceSet.abilityDice[0].gameObject);
-                AbilityType ability = diceSet.abilityDice[0].faceData[faceIdx].abilityType;
-                Debug.Log("Ability" + ability);
+                //Get ability die face up
+                int faceIdx = FaceUpCalculator.GetUpwardFace(abilityDie.gameObject);
+                AbilityType ability = abilityDie.faceData[faceIdx].abilityType;
 
 
                 // Calculate score using the results from the coroutine
                 MultiplierResult totalScore = CalculateMultiplier(faceUpMultiValues);
-                Debug.Log($"Total Base Multiplier: {totalScore.totalMultiplier}");
-                Debug.Log($"Total Value: {totalScore.totalMultiplier}");
     
                 // Animate each pair
                 foreach (var pair in totalScore.pairs)
                 {
-                    Debug.Log($"Dice {pair.diceId1} + {pair.diceId2} = {pair.pairSum} (Crit: {pair.critted})");
                     // StartCoroutine(AnimatePair(pair));
                 }
 
                 if (ability == AbilityType.Gold)
                 {
                     StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
+                }
+                else
+                {
+                    //TODO implement ability switch
                 }
 
                 // Show score animation
@@ -149,8 +155,9 @@ namespace System
                 // Enemy attack
                 // yield return new WaitForSeconds(0.5f);
 
+                ResetAbilityDie(abilityDie);
                 // Reset dice positions
-                ResetAllDice();
+                ResetMultiDie();
 
                 // yield return new WaitForSeconds(1f);
 
@@ -161,6 +168,7 @@ namespace System
         
             Debug.Log("Round Over");
         }
+        
 
         public struct PairResult
         {
@@ -264,11 +272,11 @@ namespace System
         private Vector3 getRandomGoldLaunchAngle()
         {
             Vector3 launchDirection = Vector3.forward; //goes to right of camera
-            float randomPitch = UnityEngine.Random.Range(-5f, 5f);
+            float randomPitch = UnityEngine.Random.Range(-3f, 3f);
             launchDirection = Quaternion.AngleAxis(randomPitch, Vector3.right) * launchDirection;
 
             // Add random rotation (±5 degrees) around the up axis (for front/back variation)
-            float randomYaw = UnityEngine.Random.Range(-5f, 5f);
+            float randomYaw = UnityEngine.Random.Range(-3f, 3f);
             launchDirection = Quaternion.AngleAxis(randomYaw, Vector3.up) * launchDirection;
             Debug.DrawRay(transform.position, launchDirection * 10f, Color.yellow, 0.1f);
             return launchDirection;
@@ -350,16 +358,121 @@ namespace System
             return results;
         }
         
-        private void ResetAllDice()
+        [Header("Dice Reset Animation")]
+        [SerializeField] private float jumpPower = 1.5f;
+        [SerializeField] private int jumpCount = 1;
+        [SerializeField] private float jumpDuration = 5f;
+        [SerializeField] private float delayBetweenDice = 0.1f;
+        
+        [SerializeField] private Ease jumpEase = Ease.OutCubic;
+        
+        private void ResetMultiDie()
         {
-            //TODO put all dice back in their starting position
-            //DOTween
+            Sequence masterSequence = DOTween.Sequence();
+    
+            // Step 1: All dice jump up (with stagger)
+            for (int i = 0; i < diceSet.multiDice.Count; i++)
+            {
+                MultiDie curr = diceSet.multiDice[i];
+                float delay = i * delayBetweenDice;
+                curr.rb.isKinematic = true;
+        
+                masterSequence.Insert(
+                    delay,
+                    curr.transform.DOJump(
+                            curr.transform.position + Vector3.up * 2,
+                            jumpPower,
+                            jumpCount,
+                            jumpDuration
+                        )
+                        .SetEase(jumpEase)
+                );
+            }
+            
+    
+            // Step 2: Wait 1 second (after all jumps complete)
+            float totalJumpTime = (diceSet.multiDice.Count - 1) * delayBetweenDice + jumpDuration;
+            // masterSequence.AppendInterval(0.1f);
+    
+            // Step 3: All dice move to final position and rotate (with stagger)
+            float moveStartTime = totalJumpTime + 0f;
+            for (int i = 0; i < diceSet.multiDice.Count; i++)
+            {
+                MultiDie curr = diceSet.multiDice[i];
+                Transform finalPosition = multiDiceSpawnPoints[i];
+                float delay = delayBetweenDice;
+        
+                masterSequence.Insert(
+                    moveStartTime + delay,
+                    curr.transform.DOMove(
+                            finalPosition.position,
+                            jumpDuration
+                        )
+                        .SetEase(jumpEase)
+                );
+        
+                masterSequence.Insert(
+                    moveStartTime + delay,
+                    curr.transform.DORotateQuaternion(
+                            Quaternion.Euler(270, 0, 0),
+                            jumpDuration
+                        )
+                        .SetEase(jumpEase)
+                );
+            }
+        }
+        
+        private void ResetAbilityDie(AbilityDie abilityDie)
+        {
+            Sequence masterSequence = DOTween.Sequence();
+            
+            
+            abilityDie.rb.isKinematic = true;
+            float delay = delayBetweenDice;
+            Transform finalPosition = abilityDiceSpawnPoints[0];
+            
+            masterSequence.Insert(
+                delay,
+                abilityDie.transform.DOJump(
+                        abilityDie.transform.position + Vector3.up * 2,
+                        jumpPower,
+                        jumpCount,
+                        jumpDuration
+                    )
+                    .SetEase(jumpEase)
+            );
+            
+            // Step 2: Wait 1 second (after all jumps complete)
+            float totalJumpTime = jumpDuration;
+            
+            // Step 3: All dice move to final position and rotate (with stagger)
+            float moveStartTime = totalJumpTime + 0f;
+            masterSequence.Insert(
+                moveStartTime + delay,
+                abilityDie.transform.DOMove(
+                        finalPosition.position,
+                        jumpDuration
+                    )
+                    .SetEase(jumpEase)
+            );
+        
+            masterSequence.Insert(
+                moveStartTime + delay,
+                abilityDie.transform.DORotateQuaternion(
+                        Quaternion.identity,
+                        jumpDuration
+                    )
+                    .SetEase(jumpEase)
+            );
+
         }
 
-        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab)
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints)
         {
             this.goldSpawnPoint = goldSpawnPoint;
             this.goldPiecePrefab = goldPiecePrefab;
+            this.multiDiceSpawnPoints = multiDiceSpawnPoints;
+            this.abilityDiceSpawnPoints = abilityDiceSpawnPoints;
         }
 
         // public void Update()

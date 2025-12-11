@@ -68,7 +68,7 @@ namespace System
                 currentRoundManager = Instantiate(roundManagerPrefab, transform);
             
                 // Initialize round-specific data
-                currentRoundManager.Initialize(goldSpawnPoint, goldPiecePrefab);
+                currentRoundManager.Initialize(goldSpawnPoint, goldPiecePrefab, multiDiceSpawnPoints, abilityDiceSpawnPoints);
             
                 RoundResult result = new RoundResult();
                 yield return StartCoroutine(

@@ -1,0 +1,3 @@
+ease
+	out - slow first
+	in - fast first
