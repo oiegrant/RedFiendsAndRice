@@ -12,7 +12,7 @@ namespace Data
     public enum AbilityType
     {
         Sword,
-        Coin,
+        Gold,
         Shield
     }
     

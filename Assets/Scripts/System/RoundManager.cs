@@ -15,7 +15,13 @@ namespace System
     { 
         private InputSystem_Actions playerInputSystem;
 
+        private Transform goldSpawnPoint;
+        private GoldPiece goldPiecePrefab;
+
         private DiceSet diceSet;
+        
+        private int MAX_GOLD_ON_TABLE = 1000;
+        private int currentGold = 0;
     
         [Header("Settings")]
         [SerializeField] private float velocityThreshold = 0.1f;
@@ -110,8 +116,22 @@ namespace System
 
 
                 // Calculate score using the results from the coroutine
-                int totalScore = CalculateScore(faceUpMultiValues);
-                Debug.Log("Total Sum" + totalScore);
+                MultiplierResult totalScore = CalculateMultiplier(faceUpMultiValues);
+                Debug.Log($"Total Base Multiplier: {totalScore.totalMultiplier}");
+                Debug.Log($"Total Value: {totalScore.totalMultiplier}");
+    
+                // Animate each pair
+                foreach (var pair in totalScore.pairs)
+                {
+                    Debug.Log($"Dice {pair.diceId1} + {pair.diceId2} = {pair.pairSum} (Crit: {pair.critted})");
+                    // StartCoroutine(AnimatePair(pair));
+                }
+
+                ability = AbilityType.Gold;
+                if (ability == AbilityType.Gold)
+                {
+                    StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
+                }
 
                 // Show score animation
                 // yield return StartCoroutine(uiManager.AnimateScore(totalScore));
@@ -142,14 +162,69 @@ namespace System
             Debug.Log("Round Over");
         }
 
-        private int CalculateScore(Dictionary<byte,int> faceUpMultiValues)
+        public struct PairResult
         {
-            int result = 0;
+            public byte diceId1;
+            public byte diceId2;
+            public float pairSum;
+            public bool critted;
+        }
+
+        public struct MultiplierResult
+        {
+            public float totalMultiplier;
+            public List<PairResult> pairs;
+        }
+
+        private MultiplierResult CalculateMultiplier(Dictionary<byte,int> faceUpMultiValues)
+        {
+            float totalBaseMultiplier = 0;
+            List<PairResult> pairs = new List<PairResult>();
+    
+            // Get all dice with their IDs
+            List<(byte diceId, int value)> diceValues = new List<(byte, int)>();
             foreach (var multiDie in diceSet.multiDice)
             {
-                result += faceUpMultiValues[multiDie.diceId];
+                int value = multiDie.faceData[faceUpMultiValues[multiDie.diceId]].baseValue;
+                diceValues.Add((multiDie.diceId, value));
             }
-            return result;
+    
+            // Iterate through all unique pairs
+            for (int i = 0; i < diceValues.Count; i++)
+            {
+                for (int j = i + 1; j < diceValues.Count; j++)
+                {
+                    float pairSum = diceValues[i].value + diceValues[j].value;
+                    bool crit = false;
+                    if (pairSum == 7.0f)
+                    {
+                        pairSum *= MetaUpgradeData.crit7;
+                        crit = true;
+                    }
+
+                    if (pairSum == 11.0f)
+                    {
+                        pairSum *= MetaUpgradeData.crit11;
+                        crit = true;
+                    }
+            
+                    pairs.Add(new PairResult
+                    {
+                        diceId1 = diceValues[i].diceId,
+                        diceId2 = diceValues[j].diceId,
+                        pairSum = pairSum,
+                        critted = crit,
+                    });
+            
+                    totalBaseMultiplier += pairSum;
+                }
+            }
+    
+            return new MultiplierResult
+            {
+                totalMultiplier = totalBaseMultiplier,
+                pairs = pairs
+            };
         }
 
         private IEnumerator RollAllDice()
@@ -159,7 +234,7 @@ namespace System
             foreach (var diceSetAbilityDie in diceSet.abilityDice)
             {
                 diceSetAbilityDie.rb.isKinematic = false;
-                diceSetAbilityDie.rb.AddForce(getRandomLaunchAngle() * 2500, ForceMode.Impulse);
+                diceSetAbilityDie.rb.AddForce(getRandomDiceLaunchAngle() * 2500, ForceMode.Impulse);
                 diceSetAbilityDie.rb.AddTorque(UnityEngine.Random.insideUnitSphere * 500, ForceMode.Impulse);
                 yield return new WaitForSeconds(0.2f); // Wait 1 second before next die
             }
@@ -168,27 +243,59 @@ namespace System
             foreach (var multiDie in diceSet.multiDice)
             {
                 multiDie.rb.isKinematic = false;
-                multiDie.rb.AddForce(getRandomLaunchAngle() * 2500, ForceMode.Impulse);
+                multiDie.rb.AddForce(getRandomDiceLaunchAngle() * 2500, ForceMode.Impulse);
                 multiDie.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 500, ForceMode.Impulse);
                 yield return new WaitForSeconds(0.1f); // Wait 1 second before next die
             }
         }
 
-        private Vector3 getRandomLaunchAngle()
+        private Vector3 getRandomDiceLaunchAngle()
         {
-            // Vector3 launchDirection = (Vector3.left + Vector3.up).normalized;
-            // Vector3 launchDirection = (Vector3.left).normalized;
-            // launchDirection = Quaternion.AngleAxis(-20f, Vector3.up) * launchDirection;
+
             Vector3 launchDirection = Vector3.Slerp(Vector3.left, Vector3.up, 10f / 90f).normalized;
-            // Add random rotation (±5 degrees) around the right axis (for up/down variation)
+            float randomPitch = UnityEngine.Random.Range(-5f, 5f);
+            launchDirection = Quaternion.AngleAxis(randomPitch, Vector3.forward) * launchDirection;
+            float randomYaw = UnityEngine.Random.Range(-5f, 5f);
+            launchDirection = Quaternion.AngleAxis(randomYaw, Vector3.up) * launchDirection;
+            
+            return launchDirection;
+        }
+        
+        private Vector3 getRandomGoldLaunchAngle()
+        {
+            Vector3 launchDirection = Vector3.forward; //goes to right of camera
             float randomPitch = UnityEngine.Random.Range(-5f, 5f);
             launchDirection = Quaternion.AngleAxis(randomPitch, Vector3.right) * launchDirection;
 
             // Add random rotation (±5 degrees) around the up axis (for front/back variation)
             float randomYaw = UnityEngine.Random.Range(-5f, 5f);
             launchDirection = Quaternion.AngleAxis(randomYaw, Vector3.up) * launchDirection;
-            
+            Debug.DrawRay(transform.position, launchDirection * 10f, Color.yellow, 0.1f);
             return launchDirection;
+        }
+
+        private IEnumerator DispenseGold(int newGoldCount)
+        {
+            newGoldCount *= 5;
+            if (currentGold + newGoldCount > MAX_GOLD_ON_TABLE)
+            {
+                newGoldCount = MAX_GOLD_ON_TABLE - currentGold;
+            }
+
+            for (int i = 0; i < newGoldCount; i++)
+            {
+                if (currentGold >= MAX_GOLD_ON_TABLE)
+                {
+                    yield break; // Stops the coroutine completely
+                }
+                
+                GoldPiece gp = Instantiate(goldPiecePrefab, goldSpawnPoint.position, Quaternion.identity);
+                gp.rb.AddForce(getRandomGoldLaunchAngle() * 1100, ForceMode.Impulse);
+                gp.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 100, ForceMode.Impulse);
+                currentGold++;
+                Debug.Log("Gold = " + currentGold);
+                yield return new WaitForSeconds(0.01f);
+            }
         }
         
         private bool AllDiceSettled()
@@ -249,9 +356,18 @@ namespace System
             //TODO put all dice back in their starting position
         }
 
-        public void Initialize()
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab)
         {
-            //TODO initialize round specific data (enemy, etc.)
+            this.goldSpawnPoint = goldSpawnPoint;
+            this.goldPiecePrefab = goldPiecePrefab;
         }
+
+        // public void Update()
+        // {
+        //     Vector3 x = getRandomDiceLaunchAngle();
+        //     Debug.DrawRay(transform.position, x * 10f, Color.blue, 0.1f);
+        //     Vector3 g = getRandomGoldLaunchAngle();
+        //     Debug.DrawRay(transform.position, g * 10f, Color.yellow, 0.1f);
+        // }
     }
 }

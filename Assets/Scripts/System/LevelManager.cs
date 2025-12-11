@@ -10,17 +10,19 @@ namespace System
     {
         public MultiDie multiDiePrefab;
         public AbilityDie abilityDiePrefab;
+        public GoldPiece goldPiecePrefab;
         public RoundManager roundManagerPrefab;
         private RoundManager currentRoundManager;
         public DiceSet diceSet;
         public Transform[] abilityDiceSpawnPoints;
         public Transform[] multiDiceSpawnPoints;
+        public Transform goldSpawnPoint;
         
         void Awake()
         {
             //initialize ability die at some transform
             //initialize 2 multi die at a transform
-            List<AbilityDie> abilityDice = new(); 
+            List<AbilityDie> abilityDice = new();
             List<MultiDie> multiDice = new();
             byte idInitializer = 0;
 
@@ -29,7 +31,6 @@ namespace System
                 AbilityDie abilityDieInstance = Instantiate(abilityDiePrefab, abilityDiceSpawnPoints[i].position, Quaternion.identity);
                 abilityDieInstance.rb.isKinematic = true;
                 abilityDieInstance.diceId = idInitializer;
-                abilityDieInstance.initializeFaceData();
                 idInitializer++;
                 abilityDice.Add(abilityDieInstance);
                 
@@ -67,7 +68,7 @@ namespace System
                 currentRoundManager = Instantiate(roundManagerPrefab, transform);
             
                 // Initialize round-specific data
-                currentRoundManager.Initialize();
+                currentRoundManager.Initialize(goldSpawnPoint, goldPiecePrefab);
             
                 RoundResult result = new RoundResult();
                 yield return StartCoroutine(
