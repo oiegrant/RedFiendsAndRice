@@ -146,7 +146,7 @@ namespace System
                 }
 
                 // Show score animation
-                yield return StartCoroutine(AnimateDicePairs(totalScore, diceMap));
+                StartCoroutine(AnimateDicePairs(totalScore, diceMap));
 
                 // Apply damage to enemy
                 // enemy.TakeDamage(totalScore);

@@ -13,17 +13,6 @@ namespace Data
             Vector3.right, //shield
             Vector3.back //gold
         };
-    
-        public static readonly Vector3[] D8 = new Vector3[]
-        {
-            new Vector3(1, 1, 1).normalized,
-            new Vector3(1, 1, -1).normalized,
-            new Vector3(1, -1, 1).normalized,
-            new Vector3(1, -1, -1).normalized,
-            new Vector3(-1, 1, 1).normalized,
-            new Vector3(-1, 1, -1).normalized,
-            new Vector3(-1, -1, 1).normalized,
-            new Vector3(-1, -1, -1).normalized
-        };
+
     }
 }
