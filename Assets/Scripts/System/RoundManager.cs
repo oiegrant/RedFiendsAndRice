@@ -136,6 +136,11 @@ namespace System
                     // StartCoroutine(AnimatePair(pair));
                 }
 
+                StartCoroutine(AnimateAbility());
+                // Show score animation
+                StartCoroutine(AnimateDicePairs(totalScore, diceMap));
+
+
                 if (ability == AbilityType.Gold)
                 {
                     StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
@@ -473,17 +478,22 @@ namespace System
             );
 
         }
+        public IEnumerator AnimateAbility() {
+            yield return null;
+        }
 
         public IEnumerator AnimateDicePairs(MultiplierResult multiplierResult, Dictionary<byte, MultiDie> diceMap)
             {
                 if (multiplierResult.pairs == null || multiplierResult.pairs.Count == 0)
-                    return;
+                    yield break;
 
                 // Create a main sequence
                 Sequence mainSequence = DOTween.Sequence();
 
+                // Set initial alpha to 0
                 SetOutlineAlpha(0);
 
+                // Iterate through all pairs
                 for (int i = 0; i < multiplierResult.pairs.Count; i++)
                 {
                     PairResult pair = multiplierResult.pairs[i];
@@ -540,6 +550,9 @@ namespace System
                 // Fade out after all pairs
                 mainSequence.Append(outline1.DOFade(0f, 0.3f));
                 mainSequence.Join(outline2.DOFade(0f, 0.3f));
+
+                // Wait for the entire sequence to complete
+                yield return mainSequence.WaitForCompletion();
             }
 
             private void SetOutlineAlpha(float alpha)
