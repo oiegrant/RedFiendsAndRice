@@ -33,6 +33,11 @@ namespace System
         [SerializeField] private float restThreshold = 0.1f; // Velocity threshold to consider "at rest"
         [SerializeField] private float restTime = 0.1f; // How long it must be still before considered at rest
 
+        [SerializeField] private Image outline1;
+        [SerializeField] private Image outline2;
+        [SerializeField] private Camera mainCamera;
+        [SerializeField] private Vector3 outlineOffset = new Vector3(0, 0.5f, 0); // Offset above dice
+        [SerializeField] private float outlineSize = 1.5f; // Size of the outline squares
 
         private bool waitingForInput = true;
         private bool isProcessingRound = false;
@@ -97,7 +102,7 @@ namespace System
             while (isProcessingRound) //enemy alive
             {
                 AbilityDie abilityDie = diceSet.abilityDice[0];
-                Dictionary<byte, MultiDie> diceMap = CreateDic
+                Dictionary<byte, MultiDie> diceMap = CreateDiceMap();
 
 
                 // Wait for player input
@@ -141,7 +146,6 @@ namespace System
                 }
 
                 // Show score animation
-                // public IEnumerator AnimateDicePairs(MultiplierResult multiplierResult, Dictionary<byte, MultiDie> diceMap)
                 yield return StartCoroutine(AnimateDicePairs(totalScore, diceMap));
 
                 // Apply damage to enemy
@@ -478,10 +482,8 @@ namespace System
                 // Create a main sequence
                 Sequence mainSequence = DOTween.Sequence();
 
-                // Set initial alpha to 0
                 SetOutlineAlpha(0);
 
-                // Iterate through all pairs
                 for (int i = 0; i < multiplierResult.pairs.Count; i++)
                 {
                     PairResult pair = multiplierResult.pairs[i];
@@ -550,6 +552,17 @@ namespace System
                 color2.a = alpha;
                 outline2.color = color2;
             }
+
+            private Dictionary<byte, MultiDie> CreateDiceMap() {
+                Dictionary<byte, MultiDie> results = new Dictionary<byte, MultiDie>();
+                foreach (var multiDie in diceSet.multiDice)
+                {
+                    results.Add(multiDie.diceId, multiDie);
+                }
+                return results;
+
+            }
+
 
         public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints)
         {
