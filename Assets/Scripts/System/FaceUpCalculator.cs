@@ -29,8 +29,6 @@ namespace System
         return upFaceIndex;
     }
     
-    
-    
     public static void PrintUpwardFace(GameObject go)
     {
         int faceIndex = GetUpwardFace(go);

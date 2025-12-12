@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Data;
 using DG.Tweening;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
+using Sequence = DG.Tweening.Sequence;
 
 namespace System
 {
@@ -23,8 +27,11 @@ namespace System
 
         private DiceSet diceSet;
         
-        private int MAX_GOLD_ON_TABLE = 1000;
+        private int MAX_GOLD_ON_TABLE = 5000;
         private int currentGold = 0;
+
+        private Image outline1;
+        private Image outline2;
     
         [Header("Settings")]
         [SerializeField] private float velocityThreshold = 0.1f;
@@ -97,6 +104,7 @@ namespace System
             while (isProcessingRound) //enemy alive 
             {
                 AbilityDie abilityDie = diceSet.abilityDice[0];
+                Dictionary<byte, MultiDie> multiDieDict = CreateMultiDieDict();
                 
                 // Wait for player input
                 waitingForInput = true;
@@ -113,7 +121,7 @@ namespace System
                 //diceId, faceindex
                 yield return StartCoroutine(WaitForDiceToSettle());
                 
-                Dictionary<byte,int> faceUpMultiValues = GetDiceFaceUpMap();
+                Dictionary<byte,int> faceUpMultiValues =  GetDiceFaceUpMap();
                 
                 //Get ability die face up
                 int faceIdx = FaceUpCalculator.GetUpwardFace(abilityDie.gameObject);
@@ -123,12 +131,22 @@ namespace System
                 // Calculate score using the results from the coroutine
                 MultiplierResult totalScore = CalculateMultiplier(faceUpMultiValues);
     
+                MultiDie die1 = multiDieDict[totalScore.pairs[0].diceId1];
+                MultiDie die2 = multiDieDict[totalScore.pairs[0].diceId2];
+                     
+                FadeInOutlinesAtDicePositions(die1,die2);
+                
                 // Animate each pair
-                foreach (var pair in totalScore.pairs)
-                {
-                    // StartCoroutine(AnimatePair(pair));
-                }
-
+                // foreach (var pair in totalScore.pairs)
+                // {
+                //      Transform die1 = multiDieDict[pair.diceId1].gameObject.transform;
+                //      Transform die2 = multiDieDict[pair.diceId2].gameObject.transform;
+                //      
+                //      FadeInOutlinesAtDicePositions(die1,die2);
+                //     
+                //     // StartCoroutine(AnimatePair(die1,die2));
+                // }
+                ability = AbilityType.Gold;
                 if (ability == AbilityType.Gold)
                 {
                     StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
@@ -155,9 +173,9 @@ namespace System
                 // Enemy attack
                 // yield return new WaitForSeconds(0.5f);
 
-                ResetAbilityDie(abilityDie);
+                // ResetAbilityDie(abilityDie);
                 // Reset dice positions
-                ResetMultiDie();
+                // ResetMultiDie();
 
                 // yield return new WaitForSeconds(1f);
 
@@ -169,6 +187,97 @@ namespace System
             Debug.Log("Round Over");
         }
         
+        private void TestShowOutlines()
+        {
+            // Position at a fixed test location
+            outline1.rectTransform.position = new Vector3(0, 5, 0);
+            outline2.rectTransform.position = new Vector3(0, 5, 0);
+    
+            // Make them fully visible
+            outline1.color = new Color(outline1.color.r, outline1.color.g, outline1.color.b, 1f);
+            outline2.color = new Color(outline2.color.r, outline2.color.g, outline2.color.b, 1f);
+    
+            // Enable the images
+            outline1.gameObject.SetActive(true);
+            outline2.gameObject.SetActive(true);
+        }
+        
+        private void FadeInOutlinesAtDicePositions(MultiDie die1, MultiDie die2)
+        {
+
+            Vector3 die1FaceNormal, die2FaceNormal;
+            int face1 = FaceUpCalculator.GetUpwardFace(die1.gameObject);
+            int face2 = FaceUpCalculator.GetUpwardFace(die2.gameObject);
+            Vector3 die1LocalNormal = DiceFaceNormals.D6[face1].normalized;
+            Vector3 die2LocalNormal = DiceFaceNormals.D6[face2].normalized;
+            Vector3 die1WorldNormal = die1.transform.TransformDirection(die1LocalNormal);
+            Vector3 die2WorldNormal = die2.transform.TransformDirection(die2LocalNormal);
+            // Debug.DrawRay(die1.transform.position,  die1WorldNormal* 10f, Color.red, 5f);
+            // Debug.DrawRay(die2.transform.position, die2WorldNormal * 10f, Color.red, 5f);
+            outline1.rectTransform.position = die1.transform.position + die1WorldNormal * 0.35f;
+            outline2.rectTransform.position = die2.transform.position + die2WorldNormal * 0.35f;
+            outline1.rectTransform.rotation = GetRotationAlignedWithNormal(die1.transform, die1WorldNormal, face1);
+            outline2.rectTransform.rotation = GetRotationAlignedWithNormal(die2.transform, die2WorldNormal, face2);
+
+            // Start both images fully transparent
+            Color color1 = outline1.color;
+            color1.a = 0f;
+            outline1.color = color1;
+    
+            Color color2 = outline2.color;
+            color2.a = 0f;
+            outline2.color = color2;
+    
+            // Enable the images
+            outline1.gameObject.SetActive(true);
+            outline2.gameObject.SetActive(true);
+    
+            // Fade in both images over 0.3 seconds
+            outline1.DOFade(1f, 0.3f);
+            outline2.DOFade(1f, 0.3f);
+        }
+        
+        private Quaternion GetRotationAlignedWithNormal(Transform dieTransform, Vector3 worldNormal, int idx)
+        {
+            // Start with rotation that points in the normal direction
+            Quaternion baseRotation = Quaternion.LookRotation(worldNormal);
+    
+            // Get one of the die's axes (let's use right/x-axis) in world space
+            Vector3 dieRight = dieTransform.right;
+
+            if (idx == 1 || idx == 4)
+            {
+                dieRight = dieTransform.up;
+            }
+            
+            // Project it onto the plane perpendicular to the normal
+            Vector3 projectedRight = Vector3.ProjectOnPlane(dieRight, worldNormal);
+    
+            // Calculate the rotation around the normal
+            if (projectedRight.sqrMagnitude > 0.001f)
+            {
+                Quaternion alignRotation = Quaternion.FromToRotation(baseRotation * Vector3.right, projectedRight);
+                return alignRotation * baseRotation;
+            }
+    
+            return baseRotation;
+        }
+
+        private Dictionary<byte, MultiDie> CreateMultiDieDict()
+        {
+            Dictionary<byte, MultiDie> ret = new Dictionary<byte, MultiDie>();
+            foreach (var multiDie in diceSet.multiDice)
+            {
+                ret.Add(multiDie.diceId, multiDie);
+            }
+            return ret; 
+        }
+
+        // private string AnimatePair(MultiDie die1, MultiDie die2)
+        // {
+        //     
+        // }
+
 
         public struct PairResult
         {
@@ -278,12 +387,13 @@ namespace System
             // Add random rotation (±5 degrees) around the up axis (for front/back variation)
             float randomYaw = UnityEngine.Random.Range(-3f, 3f);
             launchDirection = Quaternion.AngleAxis(randomYaw, Vector3.up) * launchDirection;
-            Debug.DrawRay(transform.position, launchDirection * 10f, Color.yellow, 0.1f);
+            // Debug.DrawRay(transform.position, launchDirection * 10f, Color.yellow, 0.1f);
             return launchDirection;
         }
 
         private IEnumerator DispenseGold(int newGoldCount)
         {
+            newGoldCount *= 5;
             if (currentGold + newGoldCount > MAX_GOLD_ON_TABLE)
             {
                 newGoldCount = MAX_GOLD_ON_TABLE - currentGold;
@@ -467,12 +577,18 @@ namespace System
 
         }
 
-        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints)
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint)
         {
             this.goldSpawnPoint = goldSpawnPoint;
             this.goldPiecePrefab = goldPiecePrefab;
             this.multiDiceSpawnPoints = multiDiceSpawnPoints;
             this.abilityDiceSpawnPoints = abilityDiceSpawnPoints;
+            GameObject outlinesGO = Instantiate(outlines, outlineSpawnPoint.position, Quaternion.identity);
+            
+            Image[] outlinearr = outlinesGO.GetComponentsInChildren<Image>();
+            outline1 = outlinearr[0];
+            outline2 = outlinearr[1];
+
         }
 
         // public void Update()
