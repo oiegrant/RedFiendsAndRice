@@ -19,7 +19,7 @@ namespace Data
 
     public struct EnemyData
     {
-        internal Image Sprite;
+        internal String enemyName;
         internal int health;
         internal int shield;
         internal int startingPhysicalDamage;
