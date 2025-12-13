@@ -546,103 +546,100 @@ namespace System
         
         private void ResetMultiDie()
         {
-            Sequence masterSequence = DOTween.Sequence();
-    
+            // Kill any existing tweens on these dice
+            foreach (var die in diceSet.multiDice)
+            {
+                die.transform.DOKill();
+            }
+
             // Step 1: All dice jump up (with stagger)
             for (int i = 0; i < diceSet.multiDice.Count; i++)
             {
                 MultiDie curr = diceSet.multiDice[i];
-                float delay = i * delayBetweenDice;
+                float jumpDelay = i * delayBetweenDice;
                 curr.rb.isKinematic = true;
-        
-                masterSequence.Insert(
-                    delay,
-                    curr.transform.DOJump(
-                            curr.transform.position + Vector3.up * 2,
-                            jumpPower,
-                            jumpCount,
-                            jumpDuration
-                        )
-                        .SetEase(jumpEase)
-                );
+
+                curr.transform.DOJump(
+                        curr.transform.position + Vector3.up * 2,
+                        jumpPower,
+                        jumpCount,
+                        jumpDuration
+                    )
+                    .SetDelay(jumpDelay)
+                    .SetEase(jumpEase)
+                    .SetAutoKill(true);
             }
-            
-    
-            // Step 2: Wait 1 second (after all jumps complete)
-            float totalJumpTime = (diceSet.multiDice.Count - 1) * delayBetweenDice + jumpDuration;
-            // masterSequence.AppendInterval(0.1f);
-    
+
             // Step 3: All dice move to final position and rotate (with stagger)
+            float totalJumpTime = (diceSet.multiDice.Count - 1) * delayBetweenDice + jumpDuration;
             float moveStartTime = totalJumpTime + 0f;
+    
             for (int i = 0; i < diceSet.multiDice.Count; i++)
             {
                 MultiDie curr = diceSet.multiDice[i];
                 Transform finalPosition = multiDiceSpawnPoints[i];
-                float delay = delayBetweenDice;
-        
-                masterSequence.Insert(
-                    moveStartTime + delay,
-                    curr.transform.DOMove(
-                            finalPosition.position,
-                            jumpDuration
-                        )
-                        .SetEase(jumpEase)
-                );
-        
-                masterSequence.Insert(
-                    moveStartTime + delay,
-                    curr.transform.DORotateQuaternion(
-                            Quaternion.Euler(270, 0, 0),
-                            jumpDuration
-                        )
-                        .SetEase(jumpEase)
-                );
+                float moveDelay = moveStartTime + delayBetweenDice;
+
+                curr.transform.DOMove(
+                        finalPosition.position,
+                        jumpDuration
+                    )
+                    .SetDelay(moveDelay)
+                    .SetEase(jumpEase)
+                    .SetAutoKill(true);
+
+                curr.transform.DORotateQuaternion(
+                        Quaternion.Euler(270, 0, 0),
+                        jumpDuration
+                    )
+                    .SetDelay(moveDelay)
+                    .SetEase(jumpEase)
+                    .SetAutoKill(true);
             }
         }
         
         private void ResetAbilityDie(AbilityDie abilityDie)
         {
-            Sequence masterSequence = DOTween.Sequence().SetEase(Ease.Linear);
-            
-            
+            // Kill any existing tweens on this die
+            abilityDie.transform.DOKill();
+    
             abilityDie.rb.isKinematic = true;
-            float delay = delayBetweenDice;
+            float jumpDelay = delayBetweenDice;
             Transform finalPosition = abilityDiceSpawnPoints[0];
-            
-            masterSequence.Insert(
-                delay,
-                abilityDie.transform.DOJump(
-                        abilityDie.transform.position + Vector3.up * 2,
-                        jumpPower,
-                        jumpCount,
-                        jumpDuration
-                    )
-                    .SetEase(jumpEase)
-            );
-            
-            // Step 2: Wait 1 second (after all jumps complete)
+    
+            // Step 1: Jump up
+            abilityDie.transform.DOJump(
+                    abilityDie.transform.position + Vector3.up * 2,
+                    jumpPower,
+                    jumpCount,
+                    jumpDuration
+                )
+                .SetDelay(jumpDelay)
+                .SetEase(jumpEase)
+                .SetAutoKill(true);
+    
+            // Step 2: Calculate timing
             float totalJumpTime = jumpDuration;
-            
-            // Step 3: All dice move to final position and rotate (with stagger)
             float moveStartTime = totalJumpTime + 0f;
-            masterSequence.Insert(
-                moveStartTime + delay,
-                abilityDie.transform.DOMove(
-                        finalPosition.position,
-                        jumpDuration
-                    )
-                    .SetEase(jumpEase)
-            );
-        
-            masterSequence.Insert(
-                moveStartTime + delay,
-                abilityDie.transform.DORotateQuaternion(
-                        Quaternion.identity,
-                        jumpDuration
-                    )
-                    .SetEase(jumpEase)
-            );
+            float moveDelay = moveStartTime + jumpDelay;
+    
+            // Step 3: Move to final position
+            abilityDie.transform.DOMove(
+                    finalPosition.position,
+                    jumpDuration
+                )
+                .SetDelay(moveDelay)
+                .SetEase(jumpEase)
+                .SetAutoKill(true);
 
+            // Step 3: Rotate to identity
+            abilityDie.transform.DORotateQuaternion(
+                    Quaternion.identity,
+                    jumpDuration
+                )
+                .SetDelay(moveDelay)
+                .SetEase(jumpEase)
+                .SetAutoKill(true);
         }
 
         public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation)
