@@ -12,9 +12,9 @@ namespace System
     //A Round is the combat loop, where the player rolls dice to enact abilities, followed by enemy attack/ability
     //A Round ends when either the enemy or player is dead
     //There are no upgrades that occur during a round, the number of dice in the players set will be the same at the start and end of a round
-    
+
     public class RoundManager : MonoBehaviour
-    { 
+    {
         private InputSystem_Actions playerInputSystem;
 
         private Transform[] multiDiceSpawnPoints;
@@ -24,13 +24,12 @@ namespace System
 
         private DiceSet diceSet;
         
-        private int MAX_GOLD_ON_TABLE = 5000;
+        private int MAX_GOLD_ON_TABLE = 1000;
         private int currentGold = 0;
 
         private Image outline1;
         private Image outline2;
         private Transform outlineSpawnPoint;
-    
         [Header("Settings")]
         [SerializeField] private float velocityThreshold = 0.1f;
         [SerializeField] private float angularVelocityThreshold = 0.1f;
@@ -38,7 +37,12 @@ namespace System
         [SerializeField] private float restThreshold = 0.1f; // Velocity threshold to consider "at rest"
         [SerializeField] private float restTime = 0.1f; // How long it must be still before considered at rest
 
-    
+        [SerializeField] private Image outline1;
+        [SerializeField] private Image outline2;
+        [SerializeField] private Camera mainCamera;
+        [SerializeField] private Vector3 outlineOffset = new Vector3(0, 0.5f, 0); // Offset above dice
+        [SerializeField] private float outlineSize = 1.5f; // Size of the outline squares
+
         private bool waitingForInput = true;
         private bool isProcessingRound = false;
         
@@ -63,7 +67,7 @@ namespace System
             playerInputSystem.Disable();
 
         }
-        
+
         private void spacePressed(InputAction.CallbackContext context)
         {
             if (waitingForInput)
@@ -71,22 +75,22 @@ namespace System
                 waitingForInput = false;
             }
         }
-        
+
         // Main entry point called by GameManager
         public IEnumerator StartRound(DiceSet diceSet, System.Action<RoundResult> onRoundComplete)
         {
             Debug.Log("Starting round");
             this.diceSet = diceSet;
             // Setup round
-            
+
             // Setup enemy with appropriate difficulty
             // Initialize enemy
-        
+
             // Run the game loop
             yield return StartCoroutine(GameLoop());
-            
+
             Debug.Log("Finished round");
-        
+
             // Create result
             RoundResult result = new RoundResult();
             result.victory = false;
@@ -98,13 +102,14 @@ namespace System
             // Return result to GameManager
             // onRoundComplete?.Invoke(result);
         }
-        
+
         private IEnumerator GameLoop()
         {
             isProcessingRound = true;
-            while (isProcessingRound) //enemy alive 
+            while (isProcessingRound) //enemy alive
             {
                 AbilityDie abilityDie = diceSet.abilityDice[0];
+
                 Dictionary<byte, MultiDie> multiDieDict = CreateMultiDieDict();
                 
                 // Wait for player input
@@ -114,10 +119,10 @@ namespace System
                 {
                     yield return null;
                 }
-                
+
                 // Roll dice
                 StartCoroutine(RollAllDice());
-                
+
                 // Wait for dice to settle and get results
                 //diceId, faceindex
                 yield return StartCoroutine(WaitForDiceToSettle());
@@ -144,12 +149,12 @@ namespace System
                 }
 
                 // Show score animation
-                // yield return StartCoroutine(uiManager.AnimateScore(totalScore));
+                yield return StartCoroutine(AnimateDicePairs(totalScore, diceMap));
 
                 // Apply damage to enemy
                 // enemy.TakeDamage(totalScore);
                 // uiManager.UpdateEnemyHealth(enemy.CurrentHealth, enemy.MaxHealth);
-                
+
                 // Check if enemy is dead
                 // if (enemy.IsDead())
                 // {
@@ -170,7 +175,7 @@ namespace System
                 ReturnOutlinesToSpawnPoint();
                 waitingForInput = true;
             }
-        
+
             Debug.Log("Round Over");
         }
 
@@ -340,7 +345,7 @@ namespace System
         {
             float totalBaseMultiplier = 0;
             List<PairResult> pairs = new List<PairResult>();
-    
+
             // Get all dice with their IDs
             List<(byte diceId, int value)> diceValues = new List<(byte, int)>();
             foreach (var multiDie in diceSet.multiDice)
@@ -348,7 +353,7 @@ namespace System
                 int value = multiDie.faceData[faceUpMultiValues[multiDie.diceId]].baseValue;
                 diceValues.Add((multiDie.diceId, value));
             }
-    
+
             // Iterate through all unique pairs
             for (int i = 0; i < diceValues.Count; i++)
             {
@@ -367,7 +372,7 @@ namespace System
                         pairSum *= MetaUpgradeData.crit11;
                         crit = true;
                     }
-            
+
                     pairs.Add(new PairResult
                     {
                         diceId1 = diceValues[i].diceId,
@@ -375,11 +380,11 @@ namespace System
                         pairSum = pairSum,
                         critted = crit,
                     });
-            
+
                     totalBaseMultiplier += pairSum;
                 }
             }
-    
+
             return new MultiplierResult
             {
                 totalMultiplier = totalBaseMultiplier,
@@ -399,7 +404,7 @@ namespace System
                 yield return new WaitForSeconds(0.2f); // Wait 1 second before next die
             }
 
-            
+
             foreach (var multiDie in diceSet.multiDice)
             {
                 multiDie.rb.isKinematic = false;
@@ -417,10 +422,10 @@ namespace System
             launchDirection = Quaternion.AngleAxis(randomPitch, Vector3.forward) * launchDirection;
             float randomYaw = UnityEngine.Random.Range(-5f, 5f);
             launchDirection = Quaternion.AngleAxis(randomYaw, Vector3.up) * launchDirection;
-            
+
             return launchDirection;
         }
-        
+
         private Vector3 getRandomGoldLaunchAngle()
         {
             Vector3 launchDirection = Vector3.forward; //goes to right of camera
@@ -447,7 +452,7 @@ namespace System
                 {
                     yield break; // Stops the coroutine completely
                 }
-                
+
                 GoldPiece gp = Instantiate(goldPiecePrefab, goldSpawnPoint.position, Quaternion.identity);
                 gp.rb.AddForce(getRandomGoldLaunchAngle() * 1100, ForceMode.Impulse);
                 gp.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 100, ForceMode.Impulse);
@@ -455,7 +460,7 @@ namespace System
                 yield return new WaitForSeconds(0.01f);
             }
         }
-        
+
         private bool AllDiceSettled()
         {
             bool allSettled = true;
@@ -480,14 +485,14 @@ namespace System
                     break;
                 }
             }
-            
+
             return allSettled;
         }
-        
+
         private IEnumerator WaitForDiceToSettle()
         {
             yield return new WaitForSeconds(0.5f);
-            
+
             // Check periodically if all dice have settled
             while (!AllDiceSettled())
             {
@@ -495,26 +500,26 @@ namespace System
             }
             Debug.Log("DiceSettled");
         }
-        
+
         private Dictionary<byte, int> GetDiceFaceUpMap()
         {
             Dictionary<byte, int> results = new Dictionary<byte, int>();
-            
+
             foreach (var multiDie in diceSet.multiDice)
             {
                 int faceIdx = FaceUpCalculator.GetUpwardFace(multiDie.gameObject);
                 results.Add(multiDie.diceId, faceIdx);
             }
-            
+
             return results;
         }
-        
+
         [Header("Dice Reset Animation")]
         [SerializeField] private float jumpPower = 1.5f;
         [SerializeField] private int jumpCount = 1;
         [SerializeField] private float jumpDuration = 5f;
         [SerializeField] private float delayBetweenDice = 0.1f;
-        
+
         [SerializeField] private Ease jumpEase = Ease.OutCubic;
         
         
@@ -572,7 +577,7 @@ namespace System
                     .SetAutoKill(true);
             }
         }
-        
+
         private void ResetAbilityDie(AbilityDie abilityDie)
         {
             // Kill any existing tweens on this die
