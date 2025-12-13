@@ -19,6 +19,7 @@ namespace System
         public Transform goldSpawnPoint;
         public GameObject outlines;
         public Transform outlineSpawnPoint;
+        public Transform sumUpLocation;
         
         void Awake()
         {
@@ -70,7 +71,7 @@ namespace System
                 currentRoundManager = Instantiate(roundManagerPrefab, transform);
             
                 // Initialize round-specific data
-                currentRoundManager.Initialize(goldSpawnPoint, goldPiecePrefab, multiDiceSpawnPoints, abilityDiceSpawnPoints, outlines, outlineSpawnPoint);
+                currentRoundManager.Initialize(goldSpawnPoint, goldPiecePrefab, multiDiceSpawnPoints, abilityDiceSpawnPoints, outlines, outlineSpawnPoint, sumUpLocation);
             
                 RoundResult result = new RoundResult();
                 yield return StartCoroutine(

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Data;
 using DG.Tweening;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -33,6 +34,9 @@ namespace System
         private Image outline1;
         private Image outline2;
         private Transform outlineSpawnPoint;
+        [SerializeField] private Transform sumUpLocation;
+        [SerializeField] private TextMeshProUGUI pairSumTextPrefab; // Or Text if using legacy UI
+        private TextMeshProUGUI currentPairSumText;
     
         [Header("Settings")]
         [SerializeField] private float velocityThreshold = 0.1f;
@@ -197,11 +201,53 @@ namespace System
                 MultiDie die2 = multiDieDict[pair.diceId2];
         
                 JumpOutlinesToDicePositions(die1, die2, isFirstPair);
+                // Show pair sum text between the two dice
+                ShowPairSumText(die1, die2, pair.pairSum);
                 isFirstPair = false;
-        
                 // Wait for the animation to complete (0.5s duration)
                 yield return new WaitForSeconds(0.5f);
+        
+                // Move the text to sum location
+                MovePairSumToTotal();
+        
+                // Small delay before next pair
+                yield return new WaitForSeconds(0.3f);
             }
+        }
+        
+        private void ShowPairSumText(MultiDie die1, MultiDie die2, float pairSum)
+        {
+            // Create or reuse text object
+            if (currentPairSumText == null)
+            {
+                currentPairSumText = Instantiate(pairSumTextPrefab, transform);
+            }
+    
+            // Position between the two dice
+            Vector3 midPoint = (die1.transform.position + die2.transform.position) / 2f;
+            currentPairSumText.rectTransform.position = midPoint + Vector3.up * 0.5f;
+    
+            // Set the text value
+            currentPairSumText.text = pairSum.ToString();
+            currentPairSumText.gameObject.SetActive(true);
+        }
+
+        private void MovePairSumToTotal()
+        {
+            if (currentPairSumText != null)
+            {
+                currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.1f).SetEase(Ease.Linear).OnComplete(() => currentPairSumText.gameObject.SetActive(false)).SetAutoKill(true);;
+            }
+        }
+        
+        private void LogActiveTweens()
+        {
+            Debug.Log($"=== Active Tweens Debug ===");
+            Debug.Log($"Total playing tweens: {DOTween.TotalPlayingTweens()}");
+            // if (currentPairSumText != null)
+            // {
+            //     Debug.Log($"PairSumText tweens: {DOTween.TotalPlayingTweensByTarget(currentPairSumText.rectTransform)}");
+            // }
         }
         
         private void JumpOutlinesToDicePositions(MultiDie die1, MultiDie die2, bool isFirstPair)
@@ -435,7 +481,6 @@ namespace System
                 gp.rb.AddForce(getRandomGoldLaunchAngle() * 1100, ForceMode.Impulse);
                 gp.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 100, ForceMode.Impulse);
                 currentGold++;
-                Debug.Log("Gold = " + currentGold);
                 yield return new WaitForSeconds(0.01f);
             }
         }
@@ -602,7 +647,7 @@ namespace System
 
         }
 
-        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint)
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation)
         {
             this.goldSpawnPoint = goldSpawnPoint;
             this.goldPiecePrefab = goldPiecePrefab;
@@ -614,15 +659,19 @@ namespace System
             outline1 = outlinearr[0];
             outline2 = outlinearr[1];
             this.outlineSpawnPoint = outlineSpawnPoint; 
+            
+            this.currentPairSumText = outlinesGO.GetComponentInChildren<TextMeshProUGUI>();
+            this.sumUpLocation = sumUpLocation;
 
         }
 
-        // public void Update()
-        // {
-        //     Vector3 x = getRandomDiceLaunchAngle();
-        //     Debug.DrawRay(transform.position, x * 10f, Color.blue, 0.1f);
-        //     Vector3 g = getRandomGoldLaunchAngle();
-        //     Debug.DrawRay(transform.position, g * 10f, Color.yellow, 0.1f);
-        // }
+        public void Update()
+        {
+            LogActiveTweens();
+            // Vector3 x = getRandomDiceLaunchAngle();
+            // Debug.DrawRay(transform.position, x * 10f, Color.blue, 0.1f);
+            // Vector3 g = getRandomGoldLaunchAngle();
+            // Debug.DrawRay(transform.position, g * 10f, Color.yellow, 0.1f);
+        }
     }
 }
