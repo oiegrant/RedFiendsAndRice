@@ -181,9 +181,9 @@ namespace System
         
         private void ReturnOutlinesToSpawnPoint()
         {
-            outline1.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
+            outline1.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.Linear)
                 .OnComplete(() => outline1.gameObject.SetActive(false));
-            outline2.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
+            outline2.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.Linear)
                 .OnComplete(() => outline2.gameObject.SetActive(false));
         }
         
@@ -202,7 +202,7 @@ namespace System
         
                 JumpOutlinesToDicePositions(die1, die2, isFirstPair);
                 // Show pair sum text between the two dice
-                ShowPairSumText(die1, die2, pair.pairSum);
+                // ShowPairSumText(die1, die2, pair.pairSum);
                 isFirstPair = false;
                 // Wait for the animation to complete (0.5s duration)
                 yield return new WaitForSeconds(0.5f);
@@ -236,7 +236,7 @@ namespace System
         {
             if (currentPairSumText != null)
             {
-                currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.1f).SetEase(Ease.Linear).OnComplete(() => currentPairSumText.gameObject.SetActive(false)).SetAutoKill(true);;
+                currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.1f).SetEase(Ease.Linear).OnComplete(() => currentPairSumText.gameObject.SetActive(false));
             }
         }
         
@@ -244,10 +244,8 @@ namespace System
         {
             Debug.Log($"=== Active Tweens Debug ===");
             Debug.Log($"Total playing tweens: {DOTween.TotalPlayingTweens()}");
-            // if (currentPairSumText != null)
-            // {
-            //     Debug.Log($"PairSumText tweens: {DOTween.TotalPlayingTweensByTarget(currentPairSumText.rectTransform)}");
-            // }
+            Debug.Log($"DOTween timeScale: {DOTween.timeScale}");
+
         }
         
         private void JumpOutlinesToDicePositions(MultiDie die1, MultiDie die2, bool isFirstPair)
@@ -285,7 +283,7 @@ namespace System
             outline1.rectTransform.DOMove(targetPos1, 0.5f).SetEase(Ease.Linear);
             outline1.rectTransform.DORotateQuaternion(targetRot1, 0.5f);
     
-            outline2.rectTransform.DOMove(targetPos2, 0.5f).SetEase(Ease.OutCubic);
+            outline2.rectTransform.DOMove(targetPos2, 0.5f).SetEase(Ease.Linear);
             outline2.rectTransform.DORotateQuaternion(targetRot2, 0.5f);
         }
 
@@ -544,7 +542,7 @@ namespace System
         [SerializeField] private float jumpDuration = 5f;
         [SerializeField] private float delayBetweenDice = 0.1f;
         
-        [SerializeField] private Ease jumpEase = Ease.OutCubic;
+        [SerializeField] private Ease jumpEase = Ease.Linear;
         
         private void ResetMultiDie()
         {
@@ -604,7 +602,7 @@ namespace System
         
         private void ResetAbilityDie(AbilityDie abilityDie)
         {
-            Sequence masterSequence = DOTween.Sequence();
+            Sequence masterSequence = DOTween.Sequence().SetEase(Ease.Linear);
             
             
             abilityDie.rb.isKinematic = true;
@@ -667,7 +665,7 @@ namespace System
 
         public void Update()
         {
-            LogActiveTweens();
+            // LogActiveTweens();
             // Vector3 x = getRandomDiceLaunchAngle();
             // Debug.DrawRay(transform.position, x * 10f, Color.blue, 0.1f);
             // Vector3 g = getRandomGoldLaunchAngle();
