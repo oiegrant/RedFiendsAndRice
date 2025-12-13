@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Data;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace System
 {
@@ -22,10 +23,13 @@ namespace System
         private GoldPiece goldPiecePrefab;
 
         private DiceSet diceSet;
-
+        
         private int MAX_GOLD_ON_TABLE = 1000;
         private int currentGold = 0;
 
+        private Image outline1;
+        private Image outline2;
+        private Transform outlineSpawnPoint;
         [Header("Settings")]
         [SerializeField] private float velocityThreshold = 0.1f;
         [SerializeField] private float angularVelocityThreshold = 0.1f;
@@ -41,6 +45,9 @@ namespace System
 
         private bool waitingForInput = true;
         private bool isProcessingRound = false;
+        
+        private Transform sumUpLocation;
+        private TextMeshProUGUI currentPairSumText;
 
         private void Awake()
         {
@@ -102,9 +109,9 @@ namespace System
             while (isProcessingRound) //enemy alive
             {
                 AbilityDie abilityDie = diceSet.abilityDice[0];
-                Dictionary<byte, MultiDie> diceMap = CreateDiceMap();
 
-
+                Dictionary<byte, MultiDie> multiDieDict = CreateMultiDieDict();
+                
                 // Wait for player input
                 waitingForInput = true;
 
@@ -119,9 +126,9 @@ namespace System
                 // Wait for dice to settle and get results
                 //diceId, faceindex
                 yield return StartCoroutine(WaitForDiceToSettle());
-
-                Dictionary<byte,int> faceUpMultiValues = GetDiceFaceUpMap();
-
+                
+                Dictionary<byte,int> faceUpMultiValues =  GetDiceFaceUpMap();
+                
                 //Get ability die face up
                 int faceIdx = FaceUpCalculator.GetUpwardFace(abilityDie.gameObject);
                 AbilityType ability = abilityDie.faceData[faceIdx].abilityType;
@@ -129,16 +136,12 @@ namespace System
 
                 // Calculate score using the results from the coroutine
                 MultiplierResult totalScore = CalculateMultiplier(faceUpMultiValues);
-
-                // Animate each pair
-                foreach (var pair in totalScore.pairs)
-                {
-                    // StartCoroutine(AnimatePair(pair));
-                }
-
+  
+                yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict));
+                
                 if (ability == AbilityType.Gold)
                 {
-                    StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
+                    yield return StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
                 }
                 else
                 {
@@ -163,18 +166,165 @@ namespace System
                 // yield return new WaitForSeconds(0.5f);
 
                 ResetAbilityDie(abilityDie);
-                // Reset dice positions
                 ResetMultiDie();
 
                 // yield return new WaitForSeconds(1f);
 
                 //Need to check if all dice are rolled, then it can proceed with round closure
                 // isProcessingRound = false;
+                ReturnOutlinesToSpawnPoint();
                 waitingForInput = true;
             }
 
             Debug.Log("Round Over");
         }
+
+        
+
+        private IEnumerator AnimateAllPairsCoroutine(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict)
+        {
+            bool isFirstPair = true;
+            foreach (var pair in totalScore.pairs)
+            {
+                MultiDie die1 = multiDieDict[pair.diceId1];
+                MultiDie die2 = multiDieDict[pair.diceId2];
+        
+                JumpOutlinesToDicePositions(die1, die2, isFirstPair);
+                ShowPairSumText(die1, die2, pair.pairSum);
+                isFirstPair = false;
+                MovePairSumToTotal();
+        
+                // Wait for the animation to complete (0.5s duration)
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+        
+        private void ShowPairSumText(MultiDie die1, MultiDie die2, float pairSum)
+        {
+            // Position between the two dice
+            Vector3 midPoint = (die1.transform.position + die2.transform.position) / 2f;
+            currentPairSumText.rectTransform.position = midPoint + Vector3.up * 0.5f;
+    
+            // Set the text value
+            currentPairSumText.text = pairSum.ToString();
+            currentPairSumText.gameObject.SetActive(true);
+        }
+        
+        private void MovePairSumToTotal()
+        {
+            if (currentPairSumText != null)
+            {
+                currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.3f)
+                    .SetEase(Ease.InOutQuad);
+            }
+        }
+        
+        private void ReturnOutlinesToSpawnPoint()
+        {
+            outline1.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
+                .OnComplete(() => outline1.gameObject.SetActive(false));
+            outline2.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
+                .OnComplete(() => outline2.gameObject.SetActive(false));
+        }
+        
+        private void JumpOutlinesToDicePositions(MultiDie die1, MultiDie die2, bool isFirstPair)
+        {
+            int face1 = FaceUpCalculator.GetUpwardFace(die1.gameObject);
+            int face2 = FaceUpCalculator.GetUpwardFace(die2.gameObject);
+            Vector3 die1LocalNormal = DiceFaceNormals.D6[face1].normalized;
+            Vector3 die2LocalNormal = DiceFaceNormals.D6[face2].normalized;
+            Vector3 die1WorldNormal = die1.transform.TransformDirection(die1LocalNormal);
+            Vector3 die2WorldNormal = die2.transform.TransformDirection(die2LocalNormal);
+
+            // Calculate target positions and rotations
+            Vector3 targetPos1 = die1.transform.position + die1WorldNormal * 0.35f;
+            Vector3 targetPos2 = die2.transform.position + die2WorldNormal * 0.35f;
+            Quaternion targetRot1 = GetRotationAlignedWithNormal(die1.transform, die1WorldNormal, face1);
+            Quaternion targetRot2 = GetRotationAlignedWithNormal(die2.transform, die2WorldNormal, face2);
+
+            // Only set initial position and visibility on first pair
+            if (isFirstPair)
+            {
+                // Start outlines at the same position but higher up (for the jump effect)
+                outline1.rectTransform.position = targetPos1 + Vector3.up * 2f;
+                outline2.rectTransform.position = targetPos2 + Vector3.up * 2f;
+        
+                // Make them fully visible
+                outline1.color = new Color(outline1.color.r, outline1.color.g, outline1.color.b, 1f);
+                outline2.color = new Color(outline2.color.r, outline2.color.g, outline2.color.b, 1f);
+        
+                // Enable the images
+                outline1.gameObject.SetActive(true);
+                outline2.gameObject.SetActive(true);
+            }
+
+            // Always animate to new positions and rotations
+            outline1.rectTransform.DOMove(targetPos1, 0.5f).SetEase(Ease.Linear);
+            outline1.rectTransform.DORotateQuaternion(targetRot1, 0.5f);
+    
+            outline2.rectTransform.DOMove(targetPos2, 0.5f).SetEase(Ease.OutCubic);
+            outline2.rectTransform.DORotateQuaternion(targetRot2, 0.5f);
+        }
+
+        
+        private void FadeInOutlinesAtDicePositions(MultiDie die1, MultiDie die2)
+        {
+
+            int face1 = FaceUpCalculator.GetUpwardFace(die1.gameObject);
+            int face2 = FaceUpCalculator.GetUpwardFace(die2.gameObject);
+            Vector3 die1LocalNormal = DiceFaceNormals.D6[face1].normalized;
+            Vector3 die2LocalNormal = DiceFaceNormals.D6[face2].normalized;
+            Vector3 die1WorldNormal = die1.transform.TransformDirection(die1LocalNormal);
+            Vector3 die2WorldNormal = die2.transform.TransformDirection(die2LocalNormal);
+            outline1.rectTransform.rotation = GetRotationAlignedWithNormal(die1.transform, die1WorldNormal, face1);
+            outline2.rectTransform.rotation = GetRotationAlignedWithNormal(die2.transform, die2WorldNormal, face2);
+            outline1.rectTransform.position = die1.transform.position + die1WorldNormal * 0.35f;
+            outline2.rectTransform.position = die2.transform.position + die2WorldNormal * 0.35f;
+            outline1.rectTransform.rotation = GetRotationAlignedWithNormal(die1.transform, die1WorldNormal, face1);
+            outline2.rectTransform.rotation = GetRotationAlignedWithNormal(die2.transform, die2WorldNormal, face2);
+
+        }
+        
+        private Quaternion GetRotationAlignedWithNormal(Transform dieTransform, Vector3 worldNormal, int idx)
+        {
+            // Start with rotation that points in the normal direction
+            Quaternion baseRotation = Quaternion.LookRotation(worldNormal);
+    
+            // Get one of the die's axes (let's use right/x-axis) in world space
+            Vector3 dieRight = dieTransform.right;
+
+            if (idx == 1 || idx == 4)
+            {
+                dieRight = dieTransform.forward;
+            }
+            
+            // Project it onto the plane perpendicular to the normal
+            Vector3 projectedRight = Vector3.ProjectOnPlane(dieRight, worldNormal);
+    
+            // Calculate the rotation around the normal
+            if (projectedRight.sqrMagnitude > 0.001f)
+            {
+                Quaternion alignRotation = Quaternion.FromToRotation(baseRotation * Vector3.right, projectedRight);
+                return alignRotation * baseRotation;
+            }
+    
+            return baseRotation;
+        }
+
+        private Dictionary<byte, MultiDie> CreateMultiDieDict()
+        {
+            Dictionary<byte, MultiDie> ret = new Dictionary<byte, MultiDie>();
+            foreach (var multiDie in diceSet.multiDice)
+            {
+                ret.Add(multiDie.diceId, multiDie);
+            }
+            return ret; 
+        }
+
+        // private string AnimatePair(MultiDie die1, MultiDie die2)
+        // {
+        //     
+        // }
 
 
         public struct PairResult
@@ -285,7 +435,7 @@ namespace System
             // Add random rotation (±5 degrees) around the up axis (for front/back variation)
             float randomYaw = UnityEngine.Random.Range(-3f, 3f);
             launchDirection = Quaternion.AngleAxis(randomYaw, Vector3.up) * launchDirection;
-            Debug.DrawRay(transform.position, launchDirection * 10f, Color.yellow, 0.1f);
+            // Debug.DrawRay(transform.position, launchDirection * 10f, Color.yellow, 0.1f);
             return launchDirection;
         }
 
@@ -307,7 +457,6 @@ namespace System
                 gp.rb.AddForce(getRandomGoldLaunchAngle() * 1100, ForceMode.Impulse);
                 gp.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 100, ForceMode.Impulse);
                 currentGold++;
-                Debug.Log("Gold = " + currentGold);
                 yield return new WaitForSeconds(0.01f);
             }
         }
@@ -372,204 +521,124 @@ namespace System
         [SerializeField] private float delayBetweenDice = 0.1f;
 
         [SerializeField] private Ease jumpEase = Ease.OutCubic;
-
+        
+        
+        
         private void ResetMultiDie()
         {
-            Sequence masterSequence = DOTween.Sequence();
+            // Kill any existing tweens on these dice
+            foreach (var die in diceSet.multiDice)
+            {
+                die.transform.DOKill();
+            }
 
             // Step 1: All dice jump up (with stagger)
             for (int i = 0; i < diceSet.multiDice.Count; i++)
             {
                 MultiDie curr = diceSet.multiDice[i];
-                float delay = i * delayBetweenDice;
+                float jumpDelay = i * delayBetweenDice;
                 curr.rb.isKinematic = true;
 
-                masterSequence.Insert(
-                    delay,
-                    curr.transform.DOJump(
-                            curr.transform.position + Vector3.up * 2,
-                            jumpPower,
-                            jumpCount,
-                            jumpDuration
-                        )
-                        .SetEase(jumpEase)
-                );
+                curr.transform.DOJump(
+                        curr.transform.position + Vector3.up * 2,
+                        jumpPower,
+                        jumpCount,
+                        jumpDuration
+                    )
+                    .SetDelay(jumpDelay)
+                    .SetEase(jumpEase)
+                    .SetAutoKill(true);
             }
 
-
-            // Step 2: Wait 1 second (after all jumps complete)
-            float totalJumpTime = (diceSet.multiDice.Count - 1) * delayBetweenDice + jumpDuration;
-            // masterSequence.AppendInterval(0.1f);
-
             // Step 3: All dice move to final position and rotate (with stagger)
+            float totalJumpTime = (diceSet.multiDice.Count - 1) * delayBetweenDice + jumpDuration;
             float moveStartTime = totalJumpTime + 0f;
+    
             for (int i = 0; i < diceSet.multiDice.Count; i++)
             {
                 MultiDie curr = diceSet.multiDice[i];
                 Transform finalPosition = multiDiceSpawnPoints[i];
-                float delay = delayBetweenDice;
+                float moveDelay = moveStartTime + delayBetweenDice;
 
-                masterSequence.Insert(
-                    moveStartTime + delay,
-                    curr.transform.DOMove(
-                            finalPosition.position,
-                            jumpDuration
-                        )
-                        .SetEase(jumpEase)
-                );
+                curr.transform.DOMove(
+                        finalPosition.position,
+                        jumpDuration
+                    )
+                    .SetDelay(moveDelay)
+                    .SetEase(jumpEase)
+                    .SetAutoKill(true);
 
-                masterSequence.Insert(
-                    moveStartTime + delay,
-                    curr.transform.DORotateQuaternion(
-                            Quaternion.Euler(270, 0, 0),
-                            jumpDuration
-                        )
-                        .SetEase(jumpEase)
-                );
+                curr.transform.DORotateQuaternion(
+                        Quaternion.Euler(270, 0, 0),
+                        jumpDuration
+                    )
+                    .SetDelay(moveDelay)
+                    .SetEase(jumpEase)
+                    .SetAutoKill(true);
             }
         }
 
         private void ResetAbilityDie(AbilityDie abilityDie)
         {
-            Sequence masterSequence = DOTween.Sequence();
-
-
+            // Kill any existing tweens on this die
+            abilityDie.transform.DOKill();
+    
             abilityDie.rb.isKinematic = true;
-            float delay = delayBetweenDice;
+            float jumpDelay = delayBetweenDice;
             Transform finalPosition = abilityDiceSpawnPoints[0];
-
-            masterSequence.Insert(
-                delay,
-                abilityDie.transform.DOJump(
-                        abilityDie.transform.position + Vector3.up * 2,
-                        jumpPower,
-                        jumpCount,
-                        jumpDuration
-                    )
-                    .SetEase(jumpEase)
-            );
-
-            // Step 2: Wait 1 second (after all jumps complete)
+    
+            // Step 1: Jump up
+            abilityDie.transform.DOJump(
+                    abilityDie.transform.position + Vector3.up * 2,
+                    jumpPower,
+                    jumpCount,
+                    jumpDuration
+                )
+                .SetDelay(jumpDelay)
+                .SetEase(jumpEase)
+                .SetAutoKill(true);
+    
+            // Step 2: Calculate timing
             float totalJumpTime = jumpDuration;
-
-            // Step 3: All dice move to final position and rotate (with stagger)
             float moveStartTime = totalJumpTime + 0f;
-            masterSequence.Insert(
-                moveStartTime + delay,
-                abilityDie.transform.DOMove(
-                        finalPosition.position,
-                        jumpDuration
-                    )
-                    .SetEase(jumpEase)
-            );
+            float moveDelay = moveStartTime + jumpDelay;
+    
+            // Step 3: Move to final position
+            abilityDie.transform.DOMove(
+                    finalPosition.position,
+                    jumpDuration
+                )
+                .SetDelay(moveDelay)
+                .SetEase(jumpEase)
+                .SetAutoKill(true);
 
-            masterSequence.Insert(
-                moveStartTime + delay,
-                abilityDie.transform.DORotateQuaternion(
-                        Quaternion.identity,
-                        jumpDuration
-                    )
-                    .SetEase(jumpEase)
-            );
-
+            // Step 3: Rotate to identity
+            abilityDie.transform.DORotateQuaternion(
+                    Quaternion.identity,
+                    jumpDuration
+                )
+                .SetDelay(moveDelay)
+                .SetEase(jumpEase)
+                .SetAutoKill(true);
         }
 
-        public IEnumerator AnimateDicePairs(MultiplierResult multiplierResult, Dictionary<byte, MultiDie> diceMap)
-            {
-                if (multiplierResult.pairs == null || multiplierResult.pairs.Count == 0)
-                    return;
-
-                // Create a main sequence
-                Sequence mainSequence = DOTween.Sequence();
-
-                SetOutlineAlpha(0);
-
-                for (int i = 0; i < multiplierResult.pairs.Count; i++)
-                {
-                    PairResult pair = multiplierResult.pairs[i];
-
-                    // Get the dice objects
-                    if (!diceMap.TryGetValue(pair.diceId1, out MultiDie dice1) ||
-                        !diceMap.TryGetValue(pair.diceId2, out MultiDie dice2))
-                    {
-                        Debug.LogWarning($"Could not find dice with IDs {pair.diceId1} or {pair.diceId2}");
-                        continue;
-                    }
-
-                    // First pair - fade in
-                    if (i == 0)
-                    {
-                        // Position outlines at dice locations
-                        Vector3 worldPos1 = dice1.transform.position + outlineOffset;
-                        Vector3 worldPos2 = dice2.transform.position + outlineOffset;
-
-                        Vector2 screenPos1 = mainCamera.WorldToScreenPoint(worldPos1);
-                        Vector2 screenPos2 = mainCamera.WorldToScreenPoint(worldPos2);
-
-                        outline1.rectTransform.anchoredPosition = screenPos1;
-                        outline2.rectTransform.anchoredPosition = screenPos2;
-
-                        // Set size
-                        outline1.rectTransform.sizeDelta = new Vector2(outlineSize * 100, outlineSize * 100);
-                        outline2.rectTransform.sizeDelta = new Vector2(outlineSize * 100, outlineSize * 100);
-
-                        // Fade in
-                        mainSequence.Append(outline1.DOFade(1f, 0.3f));
-                        mainSequence.Join(outline2.DOFade(1f, 0.3f));
-
-                        // Wait 0.5 seconds
-                        mainSequence.AppendInterval(0.5f);
-                    }
-                    else
-                    {
-                        // Tween to next pair of dice
-                        Vector3 newPos1 = dice1.transform.position + outlineOffset;
-                        Vector3 newPos2 = dice2.transform.position + outlineOffset;
-
-                        Vector2 screenPos1 = mainCamera.WorldToScreenPoint(newPos1);
-                        Vector2 screenPos2 = mainCamera.WorldToScreenPoint(newPos2);
-
-                        mainSequence.Append(outline1.rectTransform.DOAnchorPos(screenPos1, 0.4f).SetEase(Ease.InOutQuad));
-                        mainSequence.Join(outline2.rectTransform.DOAnchorPos(screenPos2, 0.4f).SetEase(Ease.InOutQuad));
-
-                        // Wait 0.5 seconds before next pair
-                        mainSequence.AppendInterval(0.5f);
-                    }
-                }
-
-                // Fade out after all pairs
-                mainSequence.Append(outline1.DOFade(0f, 0.3f));
-                mainSequence.Join(outline2.DOFade(0f, 0.3f));
-            }
-
-            private void SetOutlineAlpha(float alpha)
-            {
-                Color color1 = outline1.color;
-                color1.a = alpha;
-                outline1.color = color1;
-
-                Color color2 = outline2.color;
-                color2.a = alpha;
-                outline2.color = color2;
-            }
-
-            private Dictionary<byte, MultiDie> CreateDiceMap() {
-                Dictionary<byte, MultiDie> results = new Dictionary<byte, MultiDie>();
-                foreach (var multiDie in diceSet.multiDice)
-                {
-                    results.Add(multiDie.diceId, multiDie);
-                }
-                return results;
-
-            }
-
-
-        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints)
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation)
         {
             this.goldSpawnPoint = goldSpawnPoint;
             this.goldPiecePrefab = goldPiecePrefab;
             this.multiDiceSpawnPoints = multiDiceSpawnPoints;
             this.abilityDiceSpawnPoints = abilityDiceSpawnPoints;
+            GameObject outlinesGO = Instantiate(outlines, outlineSpawnPoint.position, Quaternion.identity);
+            
+            Image[] outlinearr = outlinesGO.GetComponentsInChildren<Image>();
+            outline1 = outlinearr[0];
+            outline2 = outlinearr[1];
+            
+            currentPairSumText = outlinesGO.GetComponentInChildren<TextMeshProUGUI>();
+            
+            this.outlineSpawnPoint = outlineSpawnPoint;
+            this.sumUpLocation = sumUpLocation;
+
         }
 
         // public void Update()
