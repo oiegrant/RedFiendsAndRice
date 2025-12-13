@@ -1,14 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Data;
 using DG.Tweening;
-using Unity.VisualScripting;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
-using Sequence = DG.Tweening.Sequence;
 
 namespace System
 {
@@ -44,6 +41,9 @@ namespace System
     
         private bool waitingForInput = true;
         private bool isProcessingRound = false;
+        
+        private Transform sumUpLocation;
+        private TextMeshProUGUI currentPairSumText;
 
         private void Awake()
         {
@@ -134,7 +134,6 @@ namespace System
   
                 yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict));
                 
-                ability = AbilityType.Gold;
                 if (ability == AbilityType.Gold)
                 {
                     yield return StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
@@ -174,19 +173,8 @@ namespace System
         
             Debug.Log("Round Over");
         }
+
         
-        private void ReturnOutlinesToSpawnPoint()
-        {
-            outline1.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
-                .OnComplete(() => outline1.gameObject.SetActive(false));
-            outline2.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
-                .OnComplete(() => outline2.gameObject.SetActive(false));
-        }
-        
-        private void AnimateAllPairs(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict)
-        {
-            StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict));
-        }
 
         private IEnumerator AnimateAllPairsCoroutine(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict)
         {
@@ -197,11 +185,41 @@ namespace System
                 MultiDie die2 = multiDieDict[pair.diceId2];
         
                 JumpOutlinesToDicePositions(die1, die2, isFirstPair);
+                ShowPairSumText(die1, die2, pair.pairSum);
                 isFirstPair = false;
+                MovePairSumToTotal();
         
                 // Wait for the animation to complete (0.5s duration)
                 yield return new WaitForSeconds(0.5f);
             }
+        }
+        
+        private void ShowPairSumText(MultiDie die1, MultiDie die2, float pairSum)
+        {
+            // Position between the two dice
+            Vector3 midPoint = (die1.transform.position + die2.transform.position) / 2f;
+            currentPairSumText.rectTransform.position = midPoint + Vector3.up * 0.5f;
+    
+            // Set the text value
+            currentPairSumText.text = pairSum.ToString();
+            currentPairSumText.gameObject.SetActive(true);
+        }
+        
+        private void MovePairSumToTotal()
+        {
+            if (currentPairSumText != null)
+            {
+                currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.3f)
+                    .SetEase(Ease.InOutQuad);
+            }
+        }
+        
+        private void ReturnOutlinesToSpawnPoint()
+        {
+            outline1.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
+                .OnComplete(() => outline1.gameObject.SetActive(false));
+            outline2.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
+                .OnComplete(() => outline2.gameObject.SetActive(false));
         }
         
         private void JumpOutlinesToDicePositions(MultiDie die1, MultiDie die2, bool isFirstPair)
@@ -418,7 +436,6 @@ namespace System
 
         private IEnumerator DispenseGold(int newGoldCount)
         {
-            newGoldCount *= 5;
             if (currentGold + newGoldCount > MAX_GOLD_ON_TABLE)
             {
                 newGoldCount = MAX_GOLD_ON_TABLE - currentGold;
@@ -435,7 +452,6 @@ namespace System
                 gp.rb.AddForce(getRandomGoldLaunchAngle() * 1100, ForceMode.Impulse);
                 gp.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 100, ForceMode.Impulse);
                 currentGold++;
-                Debug.Log("Gold = " + currentGold);
                 yield return new WaitForSeconds(0.01f);
             }
         }
@@ -601,7 +617,7 @@ namespace System
                 .SetAutoKill(true);
         }
 
-        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint)
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation)
         {
             this.goldSpawnPoint = goldSpawnPoint;
             this.goldPiecePrefab = goldPiecePrefab;
@@ -612,7 +628,11 @@ namespace System
             Image[] outlinearr = outlinesGO.GetComponentsInChildren<Image>();
             outline1 = outlinearr[0];
             outline2 = outlinearr[1];
-            this.outlineSpawnPoint = outlineSpawnPoint; 
+            
+            currentPairSumText = outlinesGO.GetComponentInChildren<TextMeshProUGUI>();
+            
+            this.outlineSpawnPoint = outlineSpawnPoint;
+            this.sumUpLocation = sumUpLocation;
 
         }
 
