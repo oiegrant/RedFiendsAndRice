@@ -32,6 +32,7 @@ namespace System
 
         private Image outline1;
         private Image outline2;
+        private Transform outlineSpawnPoint;
     
         [Header("Settings")]
         [SerializeField] private float velocityThreshold = 0.1f;
@@ -130,26 +131,13 @@ namespace System
 
                 // Calculate score using the results from the coroutine
                 MultiplierResult totalScore = CalculateMultiplier(faceUpMultiValues);
-    
-                MultiDie die1 = multiDieDict[totalScore.pairs[0].diceId1];
-                MultiDie die2 = multiDieDict[totalScore.pairs[0].diceId2];
-                     
-                FadeInOutlinesAtDicePositions(die1,die2);
+  
+                yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict));
                 
-                // Animate each pair
-                // foreach (var pair in totalScore.pairs)
-                // {
-                //      Transform die1 = multiDieDict[pair.diceId1].gameObject.transform;
-                //      Transform die2 = multiDieDict[pair.diceId2].gameObject.transform;
-                //      
-                //      FadeInOutlinesAtDicePositions(die1,die2);
-                //     
-                //     // StartCoroutine(AnimatePair(die1,die2));
-                // }
                 ability = AbilityType.Gold;
                 if (ability == AbilityType.Gold)
                 {
-                    StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
+                    yield return StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
                 }
                 else
                 {
@@ -173,68 +161,105 @@ namespace System
                 // Enemy attack
                 // yield return new WaitForSeconds(0.5f);
 
-                // ResetAbilityDie(abilityDie);
-                // Reset dice positions
-                // ResetMultiDie();
+                ResetAbilityDie(abilityDie);
+                ResetMultiDie();
 
                 // yield return new WaitForSeconds(1f);
 
                 //Need to check if all dice are rolled, then it can proceed with round closure
                 // isProcessingRound = false;
+                ReturnOutlinesToSpawnPoint();
                 waitingForInput = true;
             }
         
             Debug.Log("Round Over");
         }
         
-        private void TestShowOutlines()
+        private void ReturnOutlinesToSpawnPoint()
         {
-            // Position at a fixed test location
-            outline1.rectTransform.position = new Vector3(0, 5, 0);
-            outline2.rectTransform.position = new Vector3(0, 5, 0);
-    
-            // Make them fully visible
-            outline1.color = new Color(outline1.color.r, outline1.color.g, outline1.color.b, 1f);
-            outline2.color = new Color(outline2.color.r, outline2.color.g, outline2.color.b, 1f);
-    
-            // Enable the images
-            outline1.gameObject.SetActive(true);
-            outline2.gameObject.SetActive(true);
+            outline1.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
+                .OnComplete(() => outline1.gameObject.SetActive(false));
+            outline2.rectTransform.DOMove(outlineSpawnPoint.position, 0.5f).SetEase(Ease.InCubic)
+                .OnComplete(() => outline2.gameObject.SetActive(false));
         }
         
-        private void FadeInOutlinesAtDicePositions(MultiDie die1, MultiDie die2)
+        private void AnimateAllPairs(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict)
         {
+            StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict));
+        }
 
-            Vector3 die1FaceNormal, die2FaceNormal;
+        private IEnumerator AnimateAllPairsCoroutine(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict)
+        {
+            bool isFirstPair = true;
+            foreach (var pair in totalScore.pairs)
+            {
+                MultiDie die1 = multiDieDict[pair.diceId1];
+                MultiDie die2 = multiDieDict[pair.diceId2];
+        
+                JumpOutlinesToDicePositions(die1, die2, isFirstPair);
+                isFirstPair = false;
+        
+                // Wait for the animation to complete (0.5s duration)
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+        
+        private void JumpOutlinesToDicePositions(MultiDie die1, MultiDie die2, bool isFirstPair)
+        {
             int face1 = FaceUpCalculator.GetUpwardFace(die1.gameObject);
             int face2 = FaceUpCalculator.GetUpwardFace(die2.gameObject);
             Vector3 die1LocalNormal = DiceFaceNormals.D6[face1].normalized;
             Vector3 die2LocalNormal = DiceFaceNormals.D6[face2].normalized;
             Vector3 die1WorldNormal = die1.transform.TransformDirection(die1LocalNormal);
             Vector3 die2WorldNormal = die2.transform.TransformDirection(die2LocalNormal);
-            // Debug.DrawRay(die1.transform.position,  die1WorldNormal* 10f, Color.red, 5f);
-            // Debug.DrawRay(die2.transform.position, die2WorldNormal * 10f, Color.red, 5f);
+
+            // Calculate target positions and rotations
+            Vector3 targetPos1 = die1.transform.position + die1WorldNormal * 0.35f;
+            Vector3 targetPos2 = die2.transform.position + die2WorldNormal * 0.35f;
+            Quaternion targetRot1 = GetRotationAlignedWithNormal(die1.transform, die1WorldNormal, face1);
+            Quaternion targetRot2 = GetRotationAlignedWithNormal(die2.transform, die2WorldNormal, face2);
+
+            // Only set initial position and visibility on first pair
+            if (isFirstPair)
+            {
+                // Start outlines at the same position but higher up (for the jump effect)
+                outline1.rectTransform.position = targetPos1 + Vector3.up * 2f;
+                outline2.rectTransform.position = targetPos2 + Vector3.up * 2f;
+        
+                // Make them fully visible
+                outline1.color = new Color(outline1.color.r, outline1.color.g, outline1.color.b, 1f);
+                outline2.color = new Color(outline2.color.r, outline2.color.g, outline2.color.b, 1f);
+        
+                // Enable the images
+                outline1.gameObject.SetActive(true);
+                outline2.gameObject.SetActive(true);
+            }
+
+            // Always animate to new positions and rotations
+            outline1.rectTransform.DOMove(targetPos1, 0.5f).SetEase(Ease.Linear);
+            outline1.rectTransform.DORotateQuaternion(targetRot1, 0.5f);
+    
+            outline2.rectTransform.DOMove(targetPos2, 0.5f).SetEase(Ease.OutCubic);
+            outline2.rectTransform.DORotateQuaternion(targetRot2, 0.5f);
+        }
+
+        
+        private void FadeInOutlinesAtDicePositions(MultiDie die1, MultiDie die2)
+        {
+
+            int face1 = FaceUpCalculator.GetUpwardFace(die1.gameObject);
+            int face2 = FaceUpCalculator.GetUpwardFace(die2.gameObject);
+            Vector3 die1LocalNormal = DiceFaceNormals.D6[face1].normalized;
+            Vector3 die2LocalNormal = DiceFaceNormals.D6[face2].normalized;
+            Vector3 die1WorldNormal = die1.transform.TransformDirection(die1LocalNormal);
+            Vector3 die2WorldNormal = die2.transform.TransformDirection(die2LocalNormal);
+            outline1.rectTransform.rotation = GetRotationAlignedWithNormal(die1.transform, die1WorldNormal, face1);
+            outline2.rectTransform.rotation = GetRotationAlignedWithNormal(die2.transform, die2WorldNormal, face2);
             outline1.rectTransform.position = die1.transform.position + die1WorldNormal * 0.35f;
             outline2.rectTransform.position = die2.transform.position + die2WorldNormal * 0.35f;
             outline1.rectTransform.rotation = GetRotationAlignedWithNormal(die1.transform, die1WorldNormal, face1);
             outline2.rectTransform.rotation = GetRotationAlignedWithNormal(die2.transform, die2WorldNormal, face2);
 
-            // Start both images fully transparent
-            Color color1 = outline1.color;
-            color1.a = 0f;
-            outline1.color = color1;
-    
-            Color color2 = outline2.color;
-            color2.a = 0f;
-            outline2.color = color2;
-    
-            // Enable the images
-            outline1.gameObject.SetActive(true);
-            outline2.gameObject.SetActive(true);
-    
-            // Fade in both images over 0.3 seconds
-            outline1.DOFade(1f, 0.3f);
-            outline2.DOFade(1f, 0.3f);
         }
         
         private Quaternion GetRotationAlignedWithNormal(Transform dieTransform, Vector3 worldNormal, int idx)
@@ -247,7 +272,7 @@ namespace System
 
             if (idx == 1 || idx == 4)
             {
-                dieRight = dieTransform.up;
+                dieRight = dieTransform.forward;
             }
             
             // Project it onto the plane perpendicular to the normal
@@ -588,6 +613,7 @@ namespace System
             Image[] outlinearr = outlinesGO.GetComponentsInChildren<Image>();
             outline1 = outlinearr[0];
             outline2 = outlinearr[1];
+            this.outlineSpawnPoint = outlineSpawnPoint; 
 
         }
 
