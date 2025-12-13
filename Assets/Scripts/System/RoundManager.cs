@@ -185,6 +185,7 @@ namespace System
                 MultiDie die2 = multiDieDict[pair.diceId2];
 
                 StartCoroutine(JumpOutlinesToDicePositions(die1, die2, isFirstPair));
+                yield return new WaitForSeconds(1f);
                 ShowPairSumText(die1, die2, pair.pairSum);
                 isFirstPair = false;
                 MovePairSumToTotal();
@@ -259,7 +260,7 @@ namespace System
     
             outline2.rectTransform.DOMove(targetPos2, 0.5f).SetEase(Ease.OutCubic);
             outline2.rectTransform.DORotateQuaternion(targetRot2, 0.5f);
-            yield return new WaitForSeconds(0.7f);
+            yield return new WaitForSeconds(0.1f);
         }
 
         
