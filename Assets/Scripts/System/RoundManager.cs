@@ -183,8 +183,8 @@ namespace System
             {
                 MultiDie die1 = multiDieDict[pair.diceId1];
                 MultiDie die2 = multiDieDict[pair.diceId2];
-        
-                JumpOutlinesToDicePositions(die1, die2, isFirstPair);
+
+                StartCoroutine(JumpOutlinesToDicePositions(die1, die2, isFirstPair));
                 ShowPairSumText(die1, die2, pair.pairSum);
                 isFirstPair = false;
                 MovePairSumToTotal();
@@ -222,7 +222,7 @@ namespace System
                 .OnComplete(() => outline2.gameObject.SetActive(false));
         }
         
-        private void JumpOutlinesToDicePositions(MultiDie die1, MultiDie die2, bool isFirstPair)
+        private IEnumerator JumpOutlinesToDicePositions(MultiDie die1, MultiDie die2, bool isFirstPair)
         {
             int face1 = FaceUpCalculator.GetUpwardFace(die1.gameObject);
             int face2 = FaceUpCalculator.GetUpwardFace(die2.gameObject);
@@ -259,6 +259,7 @@ namespace System
     
             outline2.rectTransform.DOMove(targetPos2, 0.5f).SetEase(Ease.OutCubic);
             outline2.rectTransform.DORotateQuaternion(targetRot2, 0.5f);
+            yield return new WaitForSeconds(0.7f);
         }
 
         
