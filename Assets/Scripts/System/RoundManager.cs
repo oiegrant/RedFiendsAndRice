@@ -25,7 +25,7 @@ namespace System
 
         private DiceSet diceSet;
         
-        private int MAX_GOLD_ON_TABLE = 5000;
+        private int MAX_GOLD_ON_TABLE = 1000;
         private int currentGold = 0;
 
         private Image outline1;
@@ -46,6 +46,7 @@ namespace System
         private Transform sumUpLocation;
         private TextMeshProUGUI currentPairSumText;
         private TextMeshProUGUI totalSumText;
+        private Transform enemyHitLocation;
 
         private void Awake()
         {
@@ -135,8 +136,8 @@ namespace System
                 MultiplierResult totalScore = CalculateMultiplier(faceUpMultiValues);
                 //TODO animate UP ability
   
-                yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict));
-                
+                yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict, ability));
+                ability = AbilityType.Gold;
                 if (ability == AbilityType.Gold)
                 {
                     yield return StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
@@ -181,37 +182,49 @@ namespace System
 
         
 
-        private IEnumerator AnimateAllPairsCoroutine(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict)
+        private IEnumerator AnimateAllPairsCoroutine(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict, AbilityType abilityType)
         {
             bool isFirstPair = true;
             float totalScoreText = 0f;
+            totalSumText.rectTransform.DOScale(0, 0.01f)
+                .SetEase(Ease.OutCubic);
             InitializeTotalScoreText(totalScoreText);
             
             foreach (var pair in totalScore.pairs)
             {
                 MultiDie die1 = multiDieDict[pair.diceId1];
                 MultiDie die2 = multiDieDict[pair.diceId2];
-
                 yield return StartCoroutine(JumpOutlinesToDicePositions(die1, die2, isFirstPair));
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(0.1f);
                 yield return StartCoroutine(ShowPairSumText(die1, die2, pair.pairSum));
                 totalScoreText += pair.pairSum; 
                 isFirstPair = false;
                 yield return StartCoroutine(MovePairSumToTotal());
-                
-                //INCREMENT TOTAL TEXT
                 totalSumText.text = totalScoreText.ToString();
-        
-                // Wait for the animation to complete (0.5s duration)
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(0.1f);
             }
+            
+            yield return StartCoroutine(FinalScoreToEnemy());
+
+        }
+
+        private IEnumerator FinalScoreToEnemy()
+        {
+            float moveToEnemyTime = 0.5f;
+            totalSumText.rectTransform.DOMove(enemyHitLocation.position, moveToEnemyTime)
+                .SetEase(Ease.InOutQuad);
+            totalSumText.rectTransform.DOScale(0, moveToEnemyTime)
+                .SetEase(Ease.OutCubic);
+            yield return new WaitForSeconds(0.4f);
         }
 
         private void InitializeTotalScoreText(float totalScoreText)
         {
             totalSumText.rectTransform.position = sumUpLocation.position;
             totalSumText.text = totalScoreText.ToString();
-            currentPairSumText.gameObject.SetActive(true);
+            totalSumText.gameObject.SetActive(true);
+            totalSumText.rectTransform.DOScale(1f, 0.5f)
+                .SetEase(Ease.OutBack, 6f);
         }
 
         private IEnumerator ShowPairSumText(MultiDie die1, MultiDie die2, float pairSum)
@@ -229,18 +242,16 @@ namespace System
             currentPairSumText.rectTransform.DOScale(1f, 0.2f)
                 .SetEase(Ease.OutBack, 6f); // OutBack creates the overshoot effect
     
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.25f);
         }
         
         private IEnumerator MovePairSumToTotal()
         {
             if (currentPairSumText != null)
             {
-                Tween moveTween = currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.2f)
+                currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.2f)
                     .SetEase(Ease.InOutQuad);
-        
-                // yield return moveTween.WaitForCompletion();
-        
+                
                 currentPairSumText.DOFade(0f, 0.6f).SetEase(Ease.OutCubic);
         
                 yield return new WaitForSeconds(0.3f);
@@ -257,6 +268,7 @@ namespace System
         
         private IEnumerator JumpOutlinesToDicePositions(MultiDie die1, MultiDie die2, bool isFirstPair)
         {
+            float lineTime = 0.1f;
             int face1 = FaceUpCalculator.GetUpwardFace(die1.gameObject);
             int face2 = FaceUpCalculator.GetUpwardFace(die2.gameObject);
             Vector3 die1LocalNormal = DiceFaceNormals.D6[face1].normalized;
@@ -287,11 +299,11 @@ namespace System
             }
 
             // Always animate to new positions and rotations
-            outline1.rectTransform.DOMove(targetPos1, 0.5f).SetEase(Ease.Linear);
-            outline1.rectTransform.DORotateQuaternion(targetRot1, 0.5f);
+            outline1.rectTransform.DOMove(targetPos1, lineTime).SetEase(Ease.Linear);
+            outline1.rectTransform.DORotateQuaternion(targetRot1, lineTime);
     
-            outline2.rectTransform.DOMove(targetPos2, 0.5f).SetEase(Ease.OutCubic);
-            outline2.rectTransform.DORotateQuaternion(targetRot2, 0.5f);
+            outline2.rectTransform.DOMove(targetPos2, lineTime).SetEase(Ease.OutCubic);
+            outline2.rectTransform.DORotateQuaternion(targetRot2, lineTime);
             yield return new WaitForSeconds(0.1f);
         }
 
@@ -486,6 +498,8 @@ namespace System
                 gp.rb.AddForce(getRandomGoldLaunchAngle() * 1100, ForceMode.Impulse);
                 gp.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 100, ForceMode.Impulse);
                 currentGold++;
+                UIManager.updateGoldCounter(currentGold);
+                //TODO set gold count
                 yield return new WaitForSeconds(0.01f);
             }
         }
@@ -651,7 +665,7 @@ namespace System
                 .SetAutoKill(true);
         }
 
-        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation)
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation, Transform enemyHitLocation)
         {
             this.goldSpawnPoint = goldSpawnPoint;
             this.goldPiecePrefab = goldPiecePrefab;
@@ -668,6 +682,7 @@ namespace System
             
             this.outlineSpawnPoint = outlineSpawnPoint;
             this.sumUpLocation = sumUpLocation;
+            this.enemyHitLocation = enemyHitLocation;
 
         }
 
