@@ -220,8 +220,16 @@ namespace System
             currentPairSumText.rectTransform.position = die1.transform.position + Vector3.up * 2f;
             currentPairSumText.text = pairSum.ToString();
             currentPairSumText.alpha = 1f;
+    
+            // Start small
+            currentPairSumText.rectTransform.localScale = Vector3.zero;
             currentPairSumText.gameObject.SetActive(true);
-            yield return new WaitForSeconds(0.5f);
+    
+            // Animate to normal size with overshoot
+            currentPairSumText.rectTransform.DOScale(1f, 0.2f)
+                .SetEase(Ease.OutBack, 6f); // OutBack creates the overshoot effect
+    
+            yield return new WaitForSeconds(0.3f);
         }
         
         private IEnumerator MovePairSumToTotal()
