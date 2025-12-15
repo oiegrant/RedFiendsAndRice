@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Data;
 using DG.Tweening;
 using TMPro;
@@ -44,6 +45,7 @@ namespace System
         
         private Transform sumUpLocation;
         private TextMeshProUGUI currentPairSumText;
+        private TextMeshProUGUI totalSumText;
 
         private void Awake()
         {
@@ -131,6 +133,7 @@ namespace System
 
                 // Calculate score using the results from the coroutine
                 MultiplierResult totalScore = CalculateMultiplier(faceUpMultiValues);
+                //TODO animate UP ability
   
                 yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict));
                 
@@ -142,6 +145,8 @@ namespace System
                 {
                     //TODO implement ability switch
                 }
+                
+                //TODO animate DOWN ability +  
 
                 // Show score animation
                 // yield return StartCoroutine(uiManager.AnimateScore(totalScore));
@@ -179,39 +184,58 @@ namespace System
         private IEnumerator AnimateAllPairsCoroutine(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict)
         {
             bool isFirstPair = true;
+            float totalScoreText = 0f;
+            InitializeTotalScoreText(totalScoreText);
+            
             foreach (var pair in totalScore.pairs)
             {
                 MultiDie die1 = multiDieDict[pair.diceId1];
                 MultiDie die2 = multiDieDict[pair.diceId2];
 
-                StartCoroutine(JumpOutlinesToDicePositions(die1, die2, isFirstPair));
-                yield return new WaitForSeconds(1f);
-                ShowPairSumText(die1, die2, pair.pairSum);
+                yield return StartCoroutine(JumpOutlinesToDicePositions(die1, die2, isFirstPair));
+                yield return new WaitForSeconds(0.5f);
+                yield return StartCoroutine(ShowPairSumText(die1, die2, pair.pairSum));
+                totalScoreText += pair.pairSum; 
                 isFirstPair = false;
-                MovePairSumToTotal();
+                yield return StartCoroutine(MovePairSumToTotal());
+                
+                //INCREMENT TOTAL TEXT
+                totalSumText.text = totalScoreText.ToString();
         
                 // Wait for the animation to complete (0.5s duration)
                 yield return new WaitForSeconds(0.5f);
             }
         }
-        
-        private void ShowPairSumText(MultiDie die1, MultiDie die2, float pairSum)
+
+        private void InitializeTotalScoreText(float totalScoreText)
         {
-            // Position between the two dice
-            Vector3 midPoint = (die1.transform.position + die2.transform.position) / 2f;
-            currentPairSumText.rectTransform.position = midPoint + Vector3.up * 0.5f;
-    
-            // Set the text value
-            currentPairSumText.text = pairSum.ToString();
+            totalSumText.rectTransform.position = sumUpLocation.position;
+            totalSumText.text = totalScoreText.ToString();
             currentPairSumText.gameObject.SetActive(true);
         }
+
+        private IEnumerator ShowPairSumText(MultiDie die1, MultiDie die2, float pairSum)
+        {
+            
+            currentPairSumText.rectTransform.position = die1.transform.position + Vector3.up * 2f;
+            currentPairSumText.text = pairSum.ToString();
+            currentPairSumText.alpha = 1f;
+            currentPairSumText.gameObject.SetActive(true);
+            yield return new WaitForSeconds(0.5f);
+        }
         
-        private void MovePairSumToTotal()
+        private IEnumerator MovePairSumToTotal()
         {
             if (currentPairSumText != null)
             {
-                currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.3f)
+                Tween moveTween = currentPairSumText.rectTransform.DOMove(sumUpLocation.position, 0.2f)
                     .SetEase(Ease.InOutQuad);
+        
+                // yield return moveTween.WaitForCompletion();
+        
+                currentPairSumText.DOFade(0f, 0.6f).SetEase(Ease.OutCubic);
+        
+                yield return new WaitForSeconds(0.3f);
             }
         }
         
@@ -631,7 +655,8 @@ namespace System
             outline1 = outlinearr[0];
             outline2 = outlinearr[1];
             
-            currentPairSumText = outlinesGO.GetComponentInChildren<TextMeshProUGUI>();
+            currentPairSumText = outlinesGO.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("incrementText") );
+            totalSumText = outlinesGO.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("sumText"));
             
             this.outlineSpawnPoint = outlineSpawnPoint;
             this.sumUpLocation = sumUpLocation;
