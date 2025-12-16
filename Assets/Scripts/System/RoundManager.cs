@@ -137,7 +137,7 @@ namespace System
                 //TODO animate UP ability
   
                 yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict, ability));
-                ability = AbilityType.Gold;
+                
                 if (ability == AbilityType.Gold)
                 {
                     yield return StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
