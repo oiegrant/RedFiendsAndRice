@@ -47,6 +47,10 @@ namespace System
         private TextMeshProUGUI currentPairSumText;
         private TextMeshProUGUI totalSumText;
         private Transform enemyHitLocation;
+        private EnemyData currentEnemyData;
+
+        private int currentPlayerHealth;
+        private int currentPlayerShield;
 
         private void Awake()
         {
@@ -78,12 +82,17 @@ namespace System
         // Main entry point called by GameManager
         public IEnumerator StartRound(DiceSet diceSet, System.Action<RoundResult> onRoundComplete)
         {
+
+            currentPlayerHealth = MetaUpgradeData.playerMaxHealth;
+            currentPlayerShield = 0;
             Debug.Log("Starting round");
             this.diceSet = diceSet;
             // Setup round
             
             // Setup enemy with appropriate difficulty
             // Initialize enemy
+            InitializeEnemy();
+            InitializePlayer();
         
             // Run the game loop
             yield return StartCoroutine(GameLoop());
@@ -101,7 +110,19 @@ namespace System
             // Return result to GameManager
             // onRoundComplete?.Invoke(result);
         }
-        
+
+        private void InitializePlayer()
+        {
+            UIManager.updatePlayerHealthValues(currentPlayerHealth, MetaUpgradeData.playerMaxHealth);
+            UIManager.updatePlayerShieldValues(0, MetaUpgradeData.playerMaxShield);
+        }
+
+        private void InitializeEnemy()
+        {
+            UIManager.updateEnemyHealthValues(currentEnemyData.currentHealth, currentEnemyData.maxHealth);
+            UIManager.updateEnemyShieldValues(currentEnemyData.currentShield, currentEnemyData.maxShield);
+        }
+
         private IEnumerator GameLoop()
         {
             isProcessingRound = true;
@@ -137,24 +158,34 @@ namespace System
                 //TODO animate UP ability
   
                 yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict, ability));
+
+                Debug.Log("Total Mult = " + totalScore.totalMultiplier);
+                Debug.Log("Total Base = " + AbilityTypeValuesMap.abilityTypeValueMap[ability]);
+
+                int finalScore = (int)totalScore.totalMultiplier * AbilityTypeValuesMap.abilityTypeValueMap[ability];
                 
                 if (ability == AbilityType.Gold)
                 {
-                    yield return StartCoroutine(DispenseGold((int)totalScore.totalMultiplier));
+                    yield return StartCoroutine(DispenseGold(finalScore));
                 }
-                else
+                else if(ability == AbilityType.Sword)
                 {
-                    //TODO implement ability switch
+                    currentEnemyData.currentHealth -= finalScore;
+                    UIManager.updateEnemyHealthValues(currentEnemyData.currentHealth, currentEnemyData.maxHealth);
+                    //TODO CHECK END CONDITION
+                    
+                } else if (ability == AbilityType.Shield)
+                {
+                    Debug.Log("Shield Before = " + currentPlayerShield);
+                    currentPlayerShield += finalScore;
+                    Debug.Log("Shield AFter = " + currentPlayerShield);
+                    UIManager.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
                 }
                 
                 //TODO animate DOWN ability +  
-
-                // Show score animation
-                // yield return StartCoroutine(uiManager.AnimateScore(totalScore));
+                
 
                 // Apply damage to enemy
-                // enemy.TakeDamage(totalScore);
-                // uiManager.UpdateEnemyHealth(enemy.CurrentHealth, enemy.MaxHealth);
                 
                 // Check if enemy is dead
                 // if (enemy.IsDead())
@@ -164,6 +195,7 @@ namespace System
                 // }
 
                 // Enemy attack
+                EnemyAction();
                 // yield return new WaitForSeconds(0.5f);
 
                 ResetAbilityDie(abilityDie);
@@ -180,7 +212,28 @@ namespace System
             Debug.Log("Round Over");
         }
 
-        
+        private void EnemyAction()
+        {
+            int currentPhysicalAttackDamage = currentEnemyData.startingPhysicalDamage;
+            currentEnemyData.startingPhysicalDamage += currentEnemyData.basePhysicalDamageIncrement;
+            
+            int currentMagicAttackDamage = currentEnemyData.startingMagicDamage;
+            currentEnemyData.startingMagicDamage += currentEnemyData.baseMagicDamageIncrement;
+
+            if (currentPhysicalAttackDamage > currentPlayerShield)
+            {
+                int damageToHealth = currentPhysicalAttackDamage - currentPlayerShield;
+                UIManager.updatePlayerShieldValues(0, MetaUpgradeData.playerMaxShield);
+                currentPlayerHealth -= damageToHealth;
+                UIManager.updatePlayerHealthValues(currentPlayerHealth, MetaUpgradeData.playerMaxHealth);
+            }
+            else
+            {
+                currentPlayerShield -= currentPhysicalAttackDamage;
+                UIManager.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
+            }
+        }
+
 
         private IEnumerator AnimateAllPairsCoroutine(MultiplierResult totalScore,  Dictionary<byte, MultiDie> multiDieDict, AbilityType abilityType)
         {
@@ -665,7 +718,7 @@ namespace System
                 .SetAutoKill(true);
         }
 
-        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation, Transform enemyHitLocation)
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation, Transform enemyHitLocation, EnemyData currentEnemyData)
         {
             this.goldSpawnPoint = goldSpawnPoint;
             this.goldPiecePrefab = goldPiecePrefab;
@@ -683,6 +736,7 @@ namespace System
             this.outlineSpawnPoint = outlineSpawnPoint;
             this.sumUpLocation = sumUpLocation;
             this.enemyHitLocation = enemyHitLocation;
+            this.currentEnemyData = currentEnemyData;
 
         }
 

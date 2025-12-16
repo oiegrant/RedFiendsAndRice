@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Data;
-using NUnit.Framework;
 using UnityEngine;
 
 namespace System
@@ -21,6 +20,7 @@ namespace System
         public Transform outlineSpawnPoint;
         public Transform sumUpLocation;
         public Transform enemyHitLocation;
+        public List<EnemyData> levelEnemyData;
         
         void Awake()
         {
@@ -56,6 +56,29 @@ namespace System
                 multiDice = multiDice,
             };
 
+            SpecialAbility specialTest1 = new SpecialAbility
+            {
+                type =  EnemySpecialAbilityType.AddShield,
+                magnitude = 10
+            };
+
+            EnemyData testEnemyData = new EnemyData
+            {
+                enemyName = "Enemy1",
+                maxHealth = 100,
+                currentHealth = 100,
+                maxShield = 0,
+                currentShield = 0,
+                startingPhysicalDamage = 10,
+                startingMagicDamage = 0,
+                isBaseDamageIncrements = true,
+                basePhysicalDamageIncrement = 4,
+                baseMagicDamageIncrement = 0,
+                specialType = specialTest1,
+                specialChance = 10
+            };
+            levelEnemyData = new List<EnemyData>();
+            levelEnemyData.Add(testEnemyData);
         }
 
         void Start()
@@ -70,9 +93,11 @@ namespace System
             {
                 // Create new RoundManager for this round
                 currentRoundManager = Instantiate(roundManagerPrefab, transform);
+
+                EnemyData currentEnemyData = levelEnemyData[i];
             
                 // Initialize round-specific data
-                currentRoundManager.Initialize(goldSpawnPoint, goldPiecePrefab, multiDiceSpawnPoints, abilityDiceSpawnPoints, outlines, outlineSpawnPoint, sumUpLocation, enemyHitLocation);
+                currentRoundManager.Initialize(goldSpawnPoint, goldPiecePrefab, multiDiceSpawnPoints, abilityDiceSpawnPoints, outlines, outlineSpawnPoint, sumUpLocation, enemyHitLocation, currentEnemyData);
             
                 RoundResult result = new RoundResult();
                 yield return StartCoroutine(
