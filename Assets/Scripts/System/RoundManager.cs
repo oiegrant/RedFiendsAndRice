@@ -131,6 +131,44 @@ namespace System
                 AbilityDie abilityDie = diceSet.abilityDice[0];
                 Dictionary<byte, MultiDie> multiDieDict = CreateMultiDieDict();
                 
+                //Get next enemy action
+                bool enemySpecialThisRound = false; // TODO set this based on enemyData
+                int currentPhysicalAttackDamage = 0;
+                int currentMagicAttackDamage = 0;
+
+                if (enemySpecialThisRound)
+                {
+                    
+                }
+                else
+                {
+                    currentPhysicalAttackDamage = currentEnemyData.startingPhysicalDamage;
+                    currentEnemyData.startingPhysicalDamage += currentEnemyData.basePhysicalDamageIncrement;
+            
+                    currentMagicAttackDamage = currentEnemyData.startingMagicDamage;
+                    currentEnemyData.startingMagicDamage += currentEnemyData.baseMagicDamageIncrement;
+                }
+                
+                //TODO display next enemy action in display bar
+                if (enemySpecialThisRound)
+                {
+                    //TODO display special ability and magnitude
+                }
+                else
+                {
+                    if (currentPhysicalAttackDamage > 0 && currentMagicAttackDamage > 0)
+                    {
+                        //TODO double display
+                    }
+                    else
+                    {
+                        if (currentPhysicalAttackDamage > 0)
+                        {
+                            
+                        }
+                    }
+                }
+                
                 // Wait for player input
                 waitingForInput = true;
 
@@ -172,7 +210,6 @@ namespace System
                 {
                     currentEnemyData.currentHealth -= finalScore;
                     UIManager.updateEnemyHealthValues(currentEnemyData.currentHealth, currentEnemyData.maxHealth);
-                    //TODO CHECK END CONDITION
                     
                 } else if (ability == AbilityType.Shield)
                 {
@@ -182,11 +219,10 @@ namespace System
                     UIManager.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
                 }
                 
-                //TODO animate DOWN ability +  
-                
+                //TODO animate DOWN ability
 
-                // Apply damage to enemy
                 
+                //TODO check enemy death
                 // Check if enemy is dead
                 // if (enemy.IsDead())
                 // {
@@ -194,9 +230,16 @@ namespace System
                 //     break;
                 // }
 
+                
                 // Enemy attack
-                EnemyAction();
-                // yield return new WaitForSeconds(0.5f);
+                if (enemySpecialThisRound)
+                {
+                    
+                }
+                else
+                {
+                    EnemyAttackAction(currentPhysicalAttackDamage, currentMagicAttackDamage);   
+                }
 
                 ResetAbilityDie(abilityDie);
                 ResetMultiDie();
@@ -212,14 +255,9 @@ namespace System
             Debug.Log("Round Over");
         }
 
-        private void EnemyAction()
+        private void EnemyAttackAction(int currentPhysicalAttackDamage, int currentMagicAttackDamage)
         {
-            int currentPhysicalAttackDamage = currentEnemyData.startingPhysicalDamage;
-            currentEnemyData.startingPhysicalDamage += currentEnemyData.basePhysicalDamageIncrement;
-            
-            int currentMagicAttackDamage = currentEnemyData.startingMagicDamage;
-            currentEnemyData.startingMagicDamage += currentEnemyData.baseMagicDamageIncrement;
-
+            //TODO handle magic damage
             if (currentPhysicalAttackDamage > currentPlayerShield)
             {
                 int damageToHealth = currentPhysicalAttackDamage - currentPlayerShield;

@@ -150,5 +150,8 @@ namespace System
                 Debug.Log("player shield slider not initialized properly");
             }
         }
-    }
+
+		//public static void updateSingleEnemyAttackUI(EnemyAbilityType abilityType, int magnitude) {
+	
+	}
 }

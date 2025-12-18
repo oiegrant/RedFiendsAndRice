@@ -61,6 +61,11 @@ namespace Data
         internal SpecialAbility specialType;
         internal float specialChance;
     }
+
+	public enum EnemyAbilityType {
+	Melee,
+	Magic
+	}
     
 
 }
