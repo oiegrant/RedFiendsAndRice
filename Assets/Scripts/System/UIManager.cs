@@ -1,4 +1,5 @@
 using System.Linq;
+using Data;
 using TMPro;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -9,37 +10,51 @@ namespace System
     public class UIManager : MonoBehaviour
     {
         public GameObject goldCounterScreen;
-        public static TextMeshProUGUI goldCounterText;
+        private TextMeshProUGUI goldCounterText;
 
         public GameObject enemyHealthPanel;
-        public static TextMeshProUGUI enemyHealthCounter;
-        public static TextMeshProUGUI enemyShieldCounter;
-        public static Slider enemyHealthSlider;
-        public static Slider enemyShieldSlider;
+        private TextMeshProUGUI enemyHealthCounter;
+        private TextMeshProUGUI enemyShieldCounter;
+        private Slider enemyHealthSlider;
+        private Slider enemyShieldSlider;
         
+        //Player Health/Shield
         public GameObject playerHealthPanel;
-        public static TextMeshProUGUI playerHealthCounter;
-        public static TextMeshProUGUI playerShieldCounter;
-        public static Slider playerHealthSlider;
-        public static Slider playerShieldSlider;
+        private TextMeshProUGUI playerHealthCounter;
+        private TextMeshProUGUI playerShieldCounter;
+        private Slider playerHealthSlider;
+        private Slider playerShieldSlider;
         
+        //Enemy Attack
+        public GameObject enemyAttackPanel;
+        private TextMeshProUGUI singleDamageAmount;
+        private Image singleDamageTypeImage;
+        private TextMeshProUGUI doubleOneDamageAmount;
+        private Image doubleOneDamageTypeImage;
+        private TextMeshProUGUI doubleTwoDamageAmount;
+        private Image doubleTwoDamageTypeImage;
+
+        //EnemyAbilityImages
+        public  Image physicalSymbol;
+        public Image magicSymbol;
         
-        
-        
-        public static UIManager uiManager;
-        
-        public static UIManager getUIManagerInstance()
+        private static UIManager _instance;
+        public static UIManager Instance
         {
-            if (!uiManager)
+            get
             {
-                uiManager = FindFirstObjectByType<UIManager>();
+                if (_instance == null)
+                    _instance = FindFirstObjectByType<UIManager>();
+                return _instance;
             }
-            return uiManager;
         }
 
         public void Awake()
         {
+            _instance = this;
+            
             goldCounterText = goldCounterScreen.GetComponentsInChildren<TextMeshProUGUI>()[0];
+            //Health/Shield bars
             enemyHealthCounter = enemyHealthPanel.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("health"));
             enemyShieldCounter = enemyHealthPanel.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("shield"));
             enemyHealthSlider = enemyHealthPanel.GetComponentsInChildren<Slider>().ToList().Find(x => x.name.Contains("healthbar"));
@@ -48,9 +63,19 @@ namespace System
             playerShieldCounter = playerHealthPanel.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("shield"));
             playerHealthSlider = playerHealthPanel.GetComponentsInChildren<Slider>().ToList().Find(x => x.name.Contains("healthbar"));
             playerShieldSlider = playerHealthPanel.GetComponentsInChildren<Slider>().ToList().Find(x => x.name.Contains("shieldbar"));
+            
+            //EnemyAttack
+            singleDamageAmount = enemyAttackPanel.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("singleDamageAmount"));
+            singleDamageTypeImage = enemyAttackPanel.GetComponentsInChildren<Image>().ToList().Find(x => x.name.Contains("singleType"));
+            doubleOneDamageAmount = enemyAttackPanel.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("doubleOneDamageAmount"));
+            doubleOneDamageTypeImage = enemyAttackPanel.GetComponentsInChildren<Image>().ToList().Find(x => x.name.Contains("doubleOneType"));
+            doubleTwoDamageAmount = enemyAttackPanel.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("doubleTwoDamageAmount"));
+            doubleTwoDamageTypeImage = enemyAttackPanel.GetComponentsInChildren<Image>().ToList().Find(x => x.name.Contains("doubleTwoType"));
+            
+            
         }
 
-        public static void updateGoldCounter(float newValue)
+        public void updateGoldCounter(float newValue)
         {
             if (goldCounterText)
             {
@@ -63,7 +88,7 @@ namespace System
             }
         }
 
-        public static void updateEnemyHealthValues(int newValue, int totalHealth)
+        public void updateEnemyHealthValues(int newValue, int totalHealth)
         {
             if (enemyHealthCounter != null)
             {
@@ -85,7 +110,7 @@ namespace System
             }
         }
 
-        public static void updateEnemyShieldValues(int newValue, int totalShield)
+        public void updateEnemyShieldValues(int newValue, int totalShield)
         {
             if (enemyShieldCounter != null)
             {
@@ -107,7 +132,7 @@ namespace System
             }
         }
 
-        public static void updatePlayerHealthValues(int newValue, int totalHealth)
+        public void updatePlayerHealthValues(int newValue, int totalHealth)
         {
             if (playerHealthCounter != null)
             {
@@ -129,7 +154,7 @@ namespace System
             }
         }
 
-        public static void updatePlayerShieldValues(int newValue, int totalShield)
+        public void updatePlayerShieldValues(int newValue, int totalShield)
         {
             if (playerShieldCounter != null)
             {
@@ -151,7 +176,47 @@ namespace System
             }
         }
 
-		//public static void updateSingleEnemyAttackUI(EnemyAbilityType abilityType, int magnitude) {
+        public void updateSingleEnemyAttackUI(EnemyAbilityType abilityType, int magnitude)
+        {
+            switch (abilityType)
+            {
+                case EnemyAbilityType.Melee:
+                    singleDamageAmount.text = $"{magnitude}";
+                    singleDamageTypeImage.sprite = physicalSymbol.sprite;
+                    break;
+                case EnemyAbilityType.Magic:
+                    singleDamageAmount.text = $"{magnitude}";
+                    singleDamageTypeImage.sprite = magicSymbol.sprite;
+                    break;
+            }
+            singleDamageAmount.enabled = true;
+            singleDamageTypeImage.enabled = true;
+        }
+        
+        public void updateDoubleEnemyAttackUI(int physicalDamageMagnitude, int magicDamageMagnitude)
+        {
+            doubleOneDamageAmount.text = $"{physicalDamageMagnitude}";
+            doubleOneDamageTypeImage.sprite = physicalSymbol.sprite;
+            
+            doubleTwoDamageAmount.text = $"{magicDamageMagnitude}";
+            doubleTwoDamageTypeImage.sprite = magicSymbol.sprite;
+            
+            doubleOneDamageAmount.enabled = true; 
+            doubleOneDamageTypeImage.enabled = true; 
+            
+            doubleTwoDamageAmount.enabled = true; 
+            doubleTwoDamageTypeImage.enabled = true; 
+        }
+
+        public void clearEnemyAttackPanel()
+        {
+            singleDamageAmount.enabled = false;
+            singleDamageTypeImage.enabled = false;
+            doubleOneDamageAmount.enabled = false; 
+            doubleOneDamageTypeImage.enabled = false; 
+            doubleTwoDamageAmount.enabled = false; 
+            doubleTwoDamageTypeImage.enabled = false; 
+        }
 	
 	}
 }

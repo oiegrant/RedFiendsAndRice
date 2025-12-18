@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 1c7c8c8f867df554abf76f95093a8073
+guid: 5e3f0ea526c9d6245ac0b7e918920a4f
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -102,7 +102,7 @@ ScriptedImporter:
     generateIndividualEvents: 1
     generateSpriteAtlas: 1
   importFileNodeState: 1
-  platformSettingsDirtyTick: 639014139917087237
+  platformSettingsDirtyTick: 639016073417055396
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -127,9 +127,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: heart
+  - name: magic
     originalName: 
-    pivot: {x: 0.5, y: -0.107142866}
+    pivot: {x: 0.46428573, y: -0.11111111}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -138,8 +138,8 @@ ScriptedImporter:
       x: 4
       y: 4
       width: 28
-      height: 28
-    spriteID: 3d68d0b1dead493489a392b014ee8375
+      height: 27
+    spriteID: b558972ec0f0dd24ebadd88ec5de6f19
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -153,25 +153,25 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 479149618
+      value0: 4128910253
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: heart
+    name: magic
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: heart
+    - name: magic
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 2
+        x: 3
         y: 3
         width: 28
-        height: 28
-      spriteId: 3d68d0b1dead493489a392b014ee8375
+        height: 27
+      spriteId: b558972ec0f0dd24ebadd88ec5de6f19
     linkedCells: []
     tileCells: []
     tileSetIndex: 0

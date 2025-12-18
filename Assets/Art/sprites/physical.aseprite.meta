@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 648e2e2416a683a4ab001fa8389260b3
+guid: 5ff982182e067ac45aecac9f9de7f133
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -102,7 +102,7 @@ ScriptedImporter:
     generateIndividualEvents: 1
     generateSpriteAtlas: 1
   importFileNodeState: 1
-  platformSettingsDirtyTick: 639014130827694922
+  platformSettingsDirtyTick: 639016073460006120
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -127,9 +127,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: flippedshieldtransparent
+  - name: physical
     originalName: 
-    pivot: {x: 0.5, y: -0.11538462}
+    pivot: {x: 0.5, y: -0.071428575}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -137,9 +137,9 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 22
-      height: 26
-    spriteID: f38a0d876b4e0d241b11d8ca65f58a41
+      width: 12
+      height: 28
+    spriteID: 35ab4d6213ac3494787fdd169d2069f5
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -153,25 +153,25 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 1903144211
+      value0: 2593025849
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: flippedshieldtransparent
+    name: physical
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: flippedshieldtransparent
+    - name: physical
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 5
-        y: 3
-        width: 22
-        height: 26
-      spriteId: f38a0d876b4e0d241b11d8ca65f58a41
+        x: 10
+        y: 2
+        width: 12
+        height: 28
+      spriteId: 35ab4d6213ac3494787fdd169d2069f5
     linkedCells: []
     tileCells: []
     tileSetIndex: 0
@@ -181,7 +181,7 @@ ScriptedImporter:
   - name: DefaultTexturePlatform
     overridden: 0
     ignorePlatformSupport: 0
-    maxTextureSize: 64
+    maxTextureSize: 512
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0

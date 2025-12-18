@@ -113,14 +113,14 @@ namespace System
 
         private void InitializePlayer()
         {
-            UIManager.updatePlayerHealthValues(currentPlayerHealth, MetaUpgradeData.playerMaxHealth);
-            UIManager.updatePlayerShieldValues(0, MetaUpgradeData.playerMaxShield);
+            UIManager.Instance.updatePlayerHealthValues(currentPlayerHealth, MetaUpgradeData.playerMaxHealth);
+            UIManager.Instance.updatePlayerShieldValues(0, MetaUpgradeData.playerMaxShield);
         }
 
         private void InitializeEnemy()
         {
-            UIManager.updateEnemyHealthValues(currentEnemyData.currentHealth, currentEnemyData.maxHealth);
-            UIManager.updateEnemyShieldValues(currentEnemyData.currentShield, currentEnemyData.maxShield);
+            UIManager.Instance.updateEnemyHealthValues(currentEnemyData.currentHealth, currentEnemyData.maxHealth);
+            UIManager.Instance.updateEnemyShieldValues(currentEnemyData.currentShield, currentEnemyData.maxShield);
         }
 
         private IEnumerator GameLoop()
@@ -159,12 +159,16 @@ namespace System
                     if (currentPhysicalAttackDamage > 0 && currentMagicAttackDamage > 0)
                     {
                         //TODO double display
+                        UIManager.Instance.updateDoubleEnemyAttackUI(currentPhysicalAttackDamage, currentMagicAttackDamage);
                     }
                     else
                     {
                         if (currentPhysicalAttackDamage > 0)
                         {
-                            
+                            UIManager.Instance.updateSingleEnemyAttackUI(EnemyAbilityType.Melee, currentPhysicalAttackDamage);
+                        } else if (currentMagicAttackDamage > 0)
+                        {
+                            UIManager.Instance.updateSingleEnemyAttackUI(EnemyAbilityType.Magic, currentMagicAttackDamage);
                         }
                     }
                 }
@@ -209,14 +213,14 @@ namespace System
                 else if(ability == AbilityType.Sword)
                 {
                     currentEnemyData.currentHealth -= finalScore;
-                    UIManager.updateEnemyHealthValues(currentEnemyData.currentHealth, currentEnemyData.maxHealth);
+                    UIManager.Instance.updateEnemyHealthValues(currentEnemyData.currentHealth, currentEnemyData.maxHealth);
                     
                 } else if (ability == AbilityType.Shield)
                 {
                     Debug.Log("Shield Before = " + currentPlayerShield);
                     currentPlayerShield += finalScore;
                     Debug.Log("Shield AFter = " + currentPlayerShield);
-                    UIManager.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
+                    UIManager.Instance.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
                 }
                 
                 //TODO animate DOWN ability
@@ -249,6 +253,7 @@ namespace System
                 //Need to check if all dice are rolled, then it can proceed with round closure
                 // isProcessingRound = false;
                 ReturnOutlinesToSpawnPoint();
+                UIManager.Instance.clearEnemyAttackPanel();
                 waitingForInput = true;
             }
         
@@ -261,14 +266,14 @@ namespace System
             if (currentPhysicalAttackDamage > currentPlayerShield)
             {
                 int damageToHealth = currentPhysicalAttackDamage - currentPlayerShield;
-                UIManager.updatePlayerShieldValues(0, MetaUpgradeData.playerMaxShield);
+                UIManager.Instance.updatePlayerShieldValues(0, MetaUpgradeData.playerMaxShield);
                 currentPlayerHealth -= damageToHealth;
-                UIManager.updatePlayerHealthValues(currentPlayerHealth, MetaUpgradeData.playerMaxHealth);
+                UIManager.Instance.updatePlayerHealthValues(currentPlayerHealth, MetaUpgradeData.playerMaxHealth);
             }
             else
             {
                 currentPlayerShield -= currentPhysicalAttackDamage;
-                UIManager.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
+                UIManager.Instance.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
             }
         }
 
@@ -589,7 +594,7 @@ namespace System
                 gp.rb.AddForce(getRandomGoldLaunchAngle() * 1100, ForceMode.Impulse);
                 gp.rb.AddTorque( UnityEngine.Random.insideUnitSphere * 100, ForceMode.Impulse);
                 currentGold++;
-                UIManager.updateGoldCounter(currentGold);
+                UIManager.Instance.updateGoldCounter(currentGold);
                 //TODO set gold count
                 yield return new WaitForSeconds(0.01f);
             }

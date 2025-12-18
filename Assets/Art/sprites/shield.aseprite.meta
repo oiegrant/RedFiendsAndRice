@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: e8f792a1cb6a840458f33caa9c301654
+guid: e5d072c5b713ea34386e4ffa02415eef
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -102,7 +102,7 @@ ScriptedImporter:
     generateIndividualEvents: 1
     generateSpriteAtlas: 1
   importFileNodeState: 1
-  platformSettingsDirtyTick: 639014140057310135
+  platformSettingsDirtyTick: 0
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -127,9 +127,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: 2048shieldoutlinev2
+  - name: shield
     originalName: 
-    pivot: {x: 0.5, y: -0.074074075}
+    pivot: {x: 0.5, y: -0.071428575}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -138,8 +138,8 @@ ScriptedImporter:
       x: 4
       y: 4
       width: 22
-      height: 27
-    spriteID: 5eb370982a307d0448d99232c2be0052
+      height: 28
+    spriteID: 14bec751ca36d2c458c4a3c7d019541c
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -153,55 +153,31 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 3446661385
+      value0: 4055166799
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: 2048shieldoutlinev2
+    name: shield
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: 2048shieldoutlinev2
+    - name: shield
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
         x: 5
         y: 2
         width: 22
-        height: 27
-      spriteId: 5eb370982a307d0448d99232c2be0052
+        height: 28
+      spriteId: 14bec751ca36d2c458c4a3c7d019541c
     linkedCells: []
     tileCells: []
     tileSetIndex: 0
     parentIndex: -1
   tileSets: []
-  platformSettings:
-  - name: DefaultTexturePlatform
-    overridden: 0
-    ignorePlatformSupport: 0
-    maxTextureSize: 512
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 0
-    compressionQuality: 50
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    androidETC2FallbackOverride: 0
-  - name: Standalone
-    overridden: 0
-    ignorePlatformSupport: 0
-    maxTextureSize: 16384
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 0
-    compressionQuality: 50
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    androidETC2FallbackOverride: 0
+  platformSettings: []
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
