@@ -28,7 +28,7 @@ namespace System
         //Enemy Attack
         public GameObject enemyAttackPanel;
         private TextMeshProUGUI singleDamageAmount;
-        private Image singleDamageTypeImage;
+        internal Image singleDamageTypeImage;
         private TextMeshProUGUI doubleOneDamageAmount;
         private Image doubleOneDamageTypeImage;
         private TextMeshProUGUI doubleTwoDamageAmount;
@@ -71,8 +71,8 @@ namespace System
             doubleOneDamageTypeImage = enemyAttackPanel.GetComponentsInChildren<Image>().ToList().Find(x => x.name.Contains("doubleOneType"));
             doubleTwoDamageAmount = enemyAttackPanel.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("doubleTwoDamageAmount"));
             doubleTwoDamageTypeImage = enemyAttackPanel.GetComponentsInChildren<Image>().ToList().Find(x => x.name.Contains("doubleTwoType"));
-            
-            
+
+            clearEnemyAttackPanel();
         }
 
         public void updateGoldCounter(float newValue)

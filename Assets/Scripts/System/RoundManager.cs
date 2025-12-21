@@ -44,6 +44,7 @@ namespace System
         private bool isProcessingRound = false;
         
         private Transform sumUpLocation;
+        private Transform playerHealthLocation;
         private TextMeshProUGUI currentPairSumText;
         private TextMeshProUGUI totalSumText;
         private Transform enemyHitLocation;
@@ -222,9 +223,8 @@ namespace System
                     Debug.Log("Shield AFter = " + currentPlayerShield);
                     UIManager.Instance.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
                 }
-                
+                 
                 //TODO animate DOWN ability
-
                 
                 //TODO check enemy death
                 // Check if enemy is dead
@@ -233,19 +233,32 @@ namespace System
                 //     uiManager.ShowVictory();
                 //     break;
                 // }
-
                 
-                // Enemy attack
+                //TODO display next enemy action in display bar
                 if (enemySpecialThisRound)
                 {
-                    
+                    //TODO display special ability and magnitude
                 }
                 else
                 {
-                    EnemyAttackAction(currentPhysicalAttackDamage, currentMagicAttackDamage);   
+                    if (currentPhysicalAttackDamage > 0 && currentMagicAttackDamage > 0)
+                    {
+                        //AnimateDoubleEnemyAttack();
+                        EnemyAttackAction(currentPhysicalAttackDamage, currentMagicAttackDamage);
+                    }
+                    else
+                    {
+                        GameObject copyOfCurrentEnemyAbility = Instantiate(UIManager.Instance.singleDamageTypeImage.gameObject, UIManager.Instance.singleDamageTypeImage.gameObject.transform.parent);
+                        Image copiedImage = copyOfCurrentEnemyAbility.GetComponent<Image>();
+                        copiedImage.transform.position += Vector3.up * 2f;
+                        yield return StartCoroutine(AnimateSingleEnemyAttackHit(copiedImage));
+                        StartCoroutine(fadeOutDisintegrate(copiedImage));
+                        Destroy(copyOfCurrentEnemyAbility);
+                        EnemyAttackAction(currentPhysicalAttackDamage, 0);
+                    }
                 }
 
-                ResetAbilityDie(abilityDie);
+                ResetAbilityDie(abilityDie); //TODO this needs to be a coroutine so that you can't roll before dice return to rest
                 ResetMultiDie();
 
                 // yield return new WaitForSeconds(1f);
@@ -259,22 +272,62 @@ namespace System
         
             Debug.Log("Round Over");
         }
+        
+        private IEnumerator AnimateSingleEnemyAttackHit(Image copiedImage)
+        {
+            yield return StartCoroutine(scaleUpAbilityImage(copiedImage));
+            yield return StartCoroutine(moveEnemyAttackAbilityToPlayer(copiedImage));
+            yield return null;
+        }
+
+        private IEnumerator fadeOutDisintegrate(Image copiedImage)
+        {
+            copiedImage.DOFade(0f, 0.6f).SetEase(Ease.OutCubic);
+            yield return new WaitForSeconds(0.4f);
+        }
+
+        private void cleanUpCopiedImage(Image copiedImage)
+        {
+            // TODO disintegration effect
+            // https://www.a5bgames.com/devlog-3-implementing-a-disintegration-effect-with-the-unity-hdrp/
+        }
+
+        private IEnumerator moveEnemyAttackAbilityToPlayer(Image copiedImage)
+        { 
+            copiedImage.rectTransform.DOMove(playerHealthLocation.position, 0.2f)
+                .SetEase(Ease.InOutQuad);
+            copiedImage.rectTransform.DORotate(new Vector3(0, 0, 225), 0.2f)
+                .SetEase(Ease.InOutQuad);
+    
+            yield return new WaitForSeconds(0.2f);
+        }
+
+        private IEnumerator scaleUpAbilityImage(Image copiedImage)
+        {
+            copiedImage.rectTransform.DOScale(10f, 0.5f)
+                .SetEase(Ease.OutBack, 6f);
+            yield return new WaitForSeconds(0.6f);
+        }
 
         private void EnemyAttackAction(int currentPhysicalAttackDamage, int currentMagicAttackDamage)
         {
-            //TODO handle magic damage
             if (currentPhysicalAttackDamage > currentPlayerShield)
             {
                 int damageToHealth = currentPhysicalAttackDamage - currentPlayerShield;
-                UIManager.Instance.updatePlayerShieldValues(0, MetaUpgradeData.playerMaxShield);
+                currentPlayerShield = 0;
                 currentPlayerHealth -= damageToHealth;
-                UIManager.Instance.updatePlayerHealthValues(currentPlayerHealth, MetaUpgradeData.playerMaxHealth);
             }
             else
             {
                 currentPlayerShield -= currentPhysicalAttackDamage;
-                UIManager.Instance.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
             }
+            
+            //Magic damage always hits health
+            currentPlayerHealth -= currentMagicAttackDamage;
+            
+            UIManager.Instance.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
+            UIManager.Instance.updatePlayerHealthValues(currentPlayerHealth, MetaUpgradeData.playerMaxHealth);
+            
         }
 
 
@@ -761,7 +814,7 @@ namespace System
                 .SetAutoKill(true);
         }
 
-        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation, Transform enemyHitLocation, EnemyData currentEnemyData)
+        public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation, Transform enemyHitLocation, EnemyData currentEnemyData, Transform playerHealthLocation)
         {
             this.goldSpawnPoint = goldSpawnPoint;
             this.goldPiecePrefab = goldPiecePrefab;
@@ -780,7 +833,7 @@ namespace System
             this.sumUpLocation = sumUpLocation;
             this.enemyHitLocation = enemyHitLocation;
             this.currentEnemyData = currentEnemyData;
-
+            this.playerHealthLocation = playerHealthLocation;
         }
 
         // public void Update()
