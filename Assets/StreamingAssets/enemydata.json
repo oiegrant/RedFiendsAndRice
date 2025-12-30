@@ -1,0 +1,52 @@
+{
+  "data": [
+    {
+      "enemyName": "Goblin Warrior",
+      "maxHealth": 150,
+      "currentHealth": 150,
+      "maxShield": 50,
+      "currentShield": 50,
+      "startingPhysicalDamage": 15,
+      "startingMagicDamage": 5,
+      "isBaseDamageIncrements": true,
+      "basePhysicalDamageIncrement": 2,
+      "baseMagicDamageIncrement": 1,
+      "customPhysicalDamageIncrements": [],
+      "customMagicDamageIncrements": [],
+      "specialType": "Berserker",
+      "specialChance": 0.15
+    },
+    {
+      "enemyName": "Dark Mage",
+      "maxHealth": 100,
+      "currentHealth": 100,
+      "maxShield": 75,
+      "currentShield": 75,
+      "startingPhysicalDamage": 8,
+      "startingMagicDamage": 25,
+      "isBaseDamageIncrements": false,
+      "basePhysicalDamageIncrement": 0,
+      "baseMagicDamageIncrement": 0,
+      "customPhysicalDamageIncrements": [1, 2, 2, 3],
+      "customMagicDamageIncrements": [5, 7, 10, 15],
+      "specialType": "Fireball",
+      "specialChance": 0.25
+    },
+    {
+      "enemyName": "Stone Golem",
+      "maxHealth": 300,
+      "currentHealth": 300,
+      "maxShield": 100,
+      "currentShield": 100,
+      "startingPhysicalDamage": 30,
+      "startingMagicDamage": 0,
+      "isBaseDamageIncrements": true,
+      "basePhysicalDamageIncrement": 5,
+      "baseMagicDamageIncrement": 0,
+      "customPhysicalDamageIncrements": [],
+      "customMagicDamageIncrements": [],
+      "specialType": "Earthquake",
+      "specialChance": 0.1
+    }
+  ]
+}

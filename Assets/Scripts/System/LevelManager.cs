@@ -57,29 +57,29 @@ namespace System
                 multiDice = multiDice,
             };
 
-            SpecialAbility specialTest1 = new SpecialAbility
-            {
-                type =  EnemySpecialAbilityType.AddShield,
-                magnitude = 10
-            };
-
-            EnemyData testEnemyData = new EnemyData
-            {
-                enemyName = "Enemy1",
-                maxHealth = 100,
-                currentHealth = 100,
-                maxShield = 0,
-                currentShield = 0,
-                startingPhysicalDamage = 10,
-                startingMagicDamage = 0,
-                isBaseDamageIncrements = true,
-                basePhysicalDamageIncrement = 4,
-                baseMagicDamageIncrement = 0,
-                specialType = specialTest1,
-                specialChance = 10
-            };
-            levelEnemyData = new List<EnemyData>();
-            levelEnemyData.Add(testEnemyData);
+            // SpecialAbility specialTest1 = new SpecialAbility
+            // {
+            //     type =  EnemySpecialAbilityType.AddShield,
+            //     magnitude = 10
+            // };
+            // EnemyData testEnemyData = new EnemyData
+            // {
+            //     enemyName = "Enemy1",
+            //     maxHealth = 100,
+            //     currentHealth = 100,
+            //     maxShield = 0,
+            //     currentShield = 0,
+            //     startingPhysicalDamage = 10,
+            //     startingMagicDamage = 0,
+            //     isBaseDamageIncrements = true,
+            //     basePhysicalDamageIncrement = 4,
+            //     baseMagicDamageIncrement = 0,
+            //     specialType = specialTest1,
+            //     specialChance = 10
+            // };
+            // levelEnemyData = new List<EnemyData>();
+            // levelEnemyData.Add(testEnemyData);
+            levelEnemyData = FileUtilities.loadEnemyDataFile();
         }
 
         void Start()
@@ -90,7 +90,7 @@ namespace System
         public IEnumerator StartLevel()
         {
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < levelEnemyData.Count; i++)
             {
                 // Create new RoundManager for this round
                 currentRoundManager = Instantiate(roundManagerPrefab, transform);
@@ -104,7 +104,13 @@ namespace System
                 yield return StartCoroutine(
                     currentRoundManager.StartRound(diceSet, roundResult => result = roundResult));
                 Debug.Log("Back to Level Manager, round finished");
-            
+
+                if (result.victory)
+                {
+                    //TODO Go to the upgrade menu
+                    // TODO let the player apply upgrades to die faces
+                }
+                
                 // Clean up after round
                 Destroy(currentRoundManager.gameObject);
                 currentRoundManager = null;

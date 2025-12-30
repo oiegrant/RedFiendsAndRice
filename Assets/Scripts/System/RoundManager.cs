@@ -103,13 +103,15 @@ namespace System
             // Create result
             RoundResult result = new RoundResult();
             result.victory = false;
-            result.coinsEarned = 0;
 
-            // Cleanup dice
-            // CleanupDice();
+            //Clean up dice
+            for (int i = 0; i < diceSet.abilityDice.Count; i++)
+            {
+                ResetAbilityDie(diceSet.abilityDice[i]);
+            }
+            ResetMultiDie();
 
-            // Return result to GameManager
-            // onRoundComplete?.Invoke(result);
+            onRoundComplete?.Invoke(result);
         }
 
         private void InitializePlayer()
@@ -198,7 +200,7 @@ namespace System
 
                 // Calculate score using the results from the coroutine
                 MultiplierResult totalScore = CalculateMultiplier(faceUpMultiValues);
-                //TODO animate UP ability
+                //TODO animate ability UP ability
   
                 yield return StartCoroutine(AnimateAllPairsCoroutine(totalScore, multiDieDict, ability));
 
@@ -224,15 +226,21 @@ namespace System
                     UIManager.Instance.updatePlayerShieldValues(currentPlayerShield, MetaUpgradeData.playerMaxShield);
                 }
                  
-                //TODO animate DOWN ability
+                //TODO animate ability  DOWN ability
                 
-                //TODO check enemy death
-                // Check if enemy is dead
-                // if (enemy.IsDead())
-                // {
-                //     uiManager.ShowVictory();
-                //     break;
-                // }
+                 if (currentEnemyData.currentHealth <= 0)
+                 {
+                     //TODO display enemy death animation
+                     isProcessingRound = false;
+                     break;
+                 }
+
+                 if (currentPlayerHealth <= 0)
+                 {
+                     //TODO display player death animation
+                     isProcessingRound = false;
+                     break;
+                 }
                 
                 //TODO display next enemy action in display bar
                 if (enemySpecialThisRound)

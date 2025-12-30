@@ -9,5 +9,9 @@ namespace System
         { 
             DOTween.Init();
         }
+        
+        //Display main menu
+        //handle main menu inputs
+        //on start new campaign
     }
 }
