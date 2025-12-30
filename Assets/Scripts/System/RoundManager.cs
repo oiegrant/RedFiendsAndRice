@@ -31,6 +31,7 @@ namespace System
         private Image outline1;
         private Image outline2;
         private Transform outlineSpawnPoint;
+        private GameObject outlineGO;
     
         [Header("Settings")]
         [SerializeField] private float velocityThreshold = 0.1f;
@@ -52,6 +53,8 @@ namespace System
 
         private int currentPlayerHealth;
         private int currentPlayerShield;
+
+        private bool roundVictory = false;
 
         private void Awake()
         {
@@ -98,11 +101,10 @@ namespace System
             // Run the game loop
             yield return StartCoroutine(GameLoop());
             
-            Debug.Log("Finished round");
-        
             // Create result
             RoundResult result = new RoundResult();
-            result.victory = false;
+            result.victory = roundVictory;
+            result.endingCoins = currentGold;
 
             //Clean up dice
             for (int i = 0; i < diceSet.abilityDice.Count; i++)
@@ -110,6 +112,8 @@ namespace System
                 ResetAbilityDie(diceSet.abilityDice[i]);
             }
             ResetMultiDie();
+            
+            CleanUpRoundManager();
 
             onRoundComplete?.Invoke(result);
         }
@@ -231,6 +235,7 @@ namespace System
                  if (currentEnemyData.currentHealth <= 0)
                  {
                      //TODO display enemy death animation
+                     roundVictory = true;
                      isProcessingRound = false;
                      break;
                  }
@@ -277,8 +282,6 @@ namespace System
                 UIManager.Instance.clearEnemyAttackPanel();
                 waitingForInput = true;
             }
-        
-            Debug.Log("Round Over");
         }
         
         private IEnumerator AnimateSingleEnemyAttackHit(Image copiedImage)
@@ -828,20 +831,25 @@ namespace System
             this.goldPiecePrefab = goldPiecePrefab;
             this.multiDiceSpawnPoints = multiDiceSpawnPoints;
             this.abilityDiceSpawnPoints = abilityDiceSpawnPoints;
-            GameObject outlinesGO = Instantiate(outlines, outlineSpawnPoint.position, Quaternion.identity);
+            outlineGO = Instantiate(outlines, outlineSpawnPoint.position, Quaternion.identity);
             
-            Image[] outlinearr = outlinesGO.GetComponentsInChildren<Image>();
+            Image[] outlinearr = outlineGO.GetComponentsInChildren<Image>();
             outline1 = outlinearr[0];
             outline2 = outlinearr[1];
             
-            currentPairSumText = outlinesGO.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("incrementText") );
-            totalSumText = outlinesGO.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("sumText"));
+            currentPairSumText = outlineGO.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("incrementText") );
+            totalSumText = outlineGO.GetComponentsInChildren<TextMeshProUGUI>().ToList().Find(x => x.name.Contains("sumText"));
             
             this.outlineSpawnPoint = outlineSpawnPoint;
             this.sumUpLocation = sumUpLocation;
             this.enemyHitLocation = enemyHitLocation;
             this.currentEnemyData = currentEnemyData;
             this.playerHealthLocation = playerHealthLocation;
+        }
+        
+        private void CleanUpRoundManager()
+        {
+            Destroy(outlineGO);
         }
 
         // public void Update()

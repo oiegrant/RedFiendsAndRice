@@ -3,27 +3,29 @@ using System;
 namespace Data
 {
 
+    [System.Serializable]
     public struct EnemyDataLoader
     {
-        internal EnemyData[] enemyData;
+        public EnemyData[] data;
     }
     
+    [System.Serializable]
     public struct EnemyData
     {
-        internal String enemyName;
-        internal int maxHealth;
-        internal int currentHealth;
-        internal int maxShield;
-        internal int currentShield;
-        internal int startingPhysicalDamage;
-        internal int startingMagicDamage;
-        internal bool isBaseDamageIncrements;
-        internal int basePhysicalDamageIncrement;
-        internal int baseMagicDamageIncrement;
-        internal int[] customPhysicalDamageIncrements;
-        internal int[] customMagicDamageIncrements;
-        internal SpecialAbility specialType;
-        internal float specialChance;
+        public string enemyName;
+        public int maxHealth;
+        public int currentHealth;
+        public int maxShield;
+        public int currentShield;
+        public int startingPhysicalDamage;
+        public int startingMagicDamage;
+        public bool isBaseDamageIncrements;
+        public int basePhysicalDamageIncrement;
+        public int baseMagicDamageIncrement;
+        // public int[] customPhysicalDamageIncrements;
+        // public int[] customMagicDamageIncrements;
+        // public SpecialAbility specialType;
+        // public float specialChance;
     }
     
 }

@@ -18,10 +18,10 @@ namespace System
                 string jsonContent = File.ReadAllText(filePath);
                 EnemyDataLoader enemyDataLoader = JsonUtility.FromJson<EnemyDataLoader>(jsonContent);
         
-                if (enemyDataLoader.enemyData != null && enemyDataLoader.enemyData.Length > 0)
+                if (enemyDataLoader.data != null && enemyDataLoader.data.Length > 0)
                 {
                     enemyData.Clear();
-                    enemyData.AddRange(enemyDataLoader.enemyData);
+                    enemyData.AddRange(enemyDataLoader.data);
                 }
             }
             else

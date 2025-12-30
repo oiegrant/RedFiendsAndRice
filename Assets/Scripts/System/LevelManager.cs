@@ -56,34 +56,13 @@ namespace System
                 abilityDice = abilityDice,
                 multiDice = multiDice,
             };
-
-            // SpecialAbility specialTest1 = new SpecialAbility
-            // {
-            //     type =  EnemySpecialAbilityType.AddShield,
-            //     magnitude = 10
-            // };
-            // EnemyData testEnemyData = new EnemyData
-            // {
-            //     enemyName = "Enemy1",
-            //     maxHealth = 100,
-            //     currentHealth = 100,
-            //     maxShield = 0,
-            //     currentShield = 0,
-            //     startingPhysicalDamage = 10,
-            //     startingMagicDamage = 0,
-            //     isBaseDamageIncrements = true,
-            //     basePhysicalDamageIncrement = 4,
-            //     baseMagicDamageIncrement = 0,
-            //     specialType = specialTest1,
-            //     specialChance = 10
-            // };
-            // levelEnemyData = new List<EnemyData>();
-            // levelEnemyData.Add(testEnemyData);
+            
             levelEnemyData = FileUtilities.loadEnemyDataFile();
         }
 
         void Start()
         {
+            //TODO here we can say which level we want to begin (level contains 5 enemies)
             StartCoroutine(StartLevel());
         }
         
@@ -98,7 +77,17 @@ namespace System
                 EnemyData currentEnemyData = levelEnemyData[i];
             
                 // Initialize round-specific data
-                currentRoundManager.Initialize(goldSpawnPoint, goldPiecePrefab, multiDiceSpawnPoints, abilityDiceSpawnPoints, outlines, outlineSpawnPoint, sumUpLocation, enemyHitLocation, currentEnemyData, playerHealthLocation);
+                currentRoundManager.Initialize(
+                    goldSpawnPoint, 
+                    goldPiecePrefab, 
+                    multiDiceSpawnPoints, 
+                    abilityDiceSpawnPoints, 
+                    outlines, 
+                    outlineSpawnPoint, 
+                    sumUpLocation, 
+                    enemyHitLocation, 
+                    currentEnemyData, 
+                    playerHealthLocation);
             
                 RoundResult result = new RoundResult();
                 yield return StartCoroutine(
@@ -108,6 +97,7 @@ namespace System
                 if (result.victory)
                 {
                     //TODO Go to the upgrade menu
+                    
                     // TODO let the player apply upgrades to die faces
                 }
                 

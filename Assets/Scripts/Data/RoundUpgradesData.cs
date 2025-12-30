@@ -13,7 +13,7 @@ namespace Data
     
     internal enum ItemType
     {
-        Weapon,
-        Item
+        Ability,
+        MultiDie
     }
 }
