@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "enemyName": "Enemy1",
+      "maxHealth": 50,
+      "currentHealth": 50,
+      "maxShield": 100,
+      "currentShield": 0,
+      "startingPhysicalDamage": 7,
+      "startingMagicDamage": 0,
+      "isBaseDamageIncrements": true,
+      "basePhysicalDamageIncrement": 3,
+      "baseMagicDamageIncrement": 0
+    },
+    {
+      "enemyName": "Enemy2",
+      "maxHealth": 75,
+      "currentHealth": 75,
+      "maxShield": 100,
+      "currentShield": 0,
+      "startingPhysicalDamage": 0,
+      "startingMagicDamage": 3,
+      "isBaseDamageIncrements": true,
+      "basePhysicalDamageIncrement": 0,
+      "baseMagicDamageIncrement": 4
+    }
+  ]
+}
