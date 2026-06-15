@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://ciytjp53jsa58"]
+
+[ext_resource type="PackedScene" uid="uid://hpwowg82b13k" path="res://models/rollarea/rework/rollarea_rework.fbx" id="1_jh233"]
+[ext_resource type="Material" uid="uid://daibtwlqe0u5f" path="res://models/rollarea/rework/reroll_rework_mat.tres" id="2_e4iad"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a4pyd"]
+
+[node name="rollarea_rework" unique_id=823611182 instance=ExtResource("1_jh233")]
+
+[node name="rollarea" parent="." index="0" unique_id=2026836293]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, 1.1943501, -0.11505036, -2.7732856)
+material_override = ExtResource("2_e4iad")
+surface_material_override/0 = SubResource("StandardMaterial3D_a4pyd")

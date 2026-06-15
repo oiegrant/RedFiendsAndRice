@@ -1,0 +1,12 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://ch5br2533oh30"]
+
+[ext_resource type="Texture2D" uid="uid://l6tisy5u3c8e" path="res://models/rollarea/rollarea_rework_Material.001_AlbedoTransparency.png" id="1_u7rt1"]
+[ext_resource type="Texture2D" uid="uid://dh1407ca88dx0" path="res://models/rollarea/rollarea_Material_MetallicSmoothness.png" id="2_ij82i"]
+
+[resource]
+albedo_texture = ExtResource("1_u7rt1")
+metallic = 1.0
+metallic_texture = ExtResource("2_ij82i")
+uv1_scale = Vector3(-1, 1, 1)
+uv1_offset = Vector3(-0.05, 0, 0)
+uv2_scale = Vector3(0, 0, 1)

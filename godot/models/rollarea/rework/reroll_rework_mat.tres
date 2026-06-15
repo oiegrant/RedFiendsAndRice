@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://daibtwlqe0u5f"]
+
+[ext_resource type="Texture2D" uid="uid://c44krbwyujr6m" path="res://models/rollarea/rework/rollarea_rework_Material.001_AlbedoTransparency.png" id="1_856d0"]
+[ext_resource type="Texture2D" uid="uid://d78y2svpbstx" path="res://models/rollarea/rework/rollarea_Material_MetallicSmoothness.png" id="2_tgu20"]
+[ext_resource type="Texture2D" uid="uid://cy3capxa2sv6m" path="res://models/rollarea/rework/rollarea_rework_Material.001_Normal.png" id="3_cyjpg"]
+
+[resource]
+albedo_texture = ExtResource("1_856d0")
+metallic = 1.0
+metallic_texture = ExtResource("2_tgu20")
+normal_texture = ExtResource("3_cyjpg")
