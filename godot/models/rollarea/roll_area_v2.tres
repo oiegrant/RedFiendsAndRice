@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://c6oxl0tdwn5se"]
+
+[ext_resource type="Texture2D" uid="uid://ih75f4m3vgiy" path="res://models/rollarea/rollarea_Material_AlbedoTransparency.png" id="1_otlej"]
+
+[resource]
+albedo_texture = ExtResource("1_otlej")

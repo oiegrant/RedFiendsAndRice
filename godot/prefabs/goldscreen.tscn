@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; Note: the Unity prefab is named "goldscreen" but references attackzonescreen.fbx —
+; preserving Unity's naming so the parser-emitted Prefab_goldscreen placeholder maps cleanly.
+[ext_resource type="PackedScene" path="res://models/screens/attackzonescreen.fbx" id="1"]
+
+[node name="GoldScreen" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1")]

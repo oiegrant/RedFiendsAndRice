@@ -44,7 +44,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d93a22fffadf4d28a69c05413c27dd7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::System.RoundManager
-  dice: []
   velocityThreshold: 0.1
   angularVelocityThreshold: 0.1
   settleCheckInterval: 0.1
+  restThreshold: 0.1
+  restTime: 0.1
+  jumpPower: 1.5
+  jumpCount: 1
+  jumpDuration: 1
+  delayBetweenDice: 0.1
+  jumpEase: 9

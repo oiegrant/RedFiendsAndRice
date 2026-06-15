@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bwp67xa7muqfv"]
+
+[ext_resource type="Texture2D" uid="uid://dwsl86ta2v0c" path="res://models/d6/d6_d6f5_AlbedoTransparency.png" id="1_bnfml"]
+[ext_resource type="Texture2D" uid="uid://cqdrls1lqrtiu" path="res://models/d6/d6_d6f5_MetallicSmoothness.png" id="2_5fk4t"]
+[ext_resource type="Texture2D" uid="uid://dsyd6m01c35pn" path="res://models/d6/d6_d6f5_Normal.png" id="3_pel3w"]
+
+[resource]
+resource_name = "d6f5"
+albedo_texture = ExtResource("1_bnfml")
+metallic = 1.0
+metallic_texture = ExtResource("2_5fk4t")
+normal_enabled = true
+normal_texture = ExtResource("3_pel3w")

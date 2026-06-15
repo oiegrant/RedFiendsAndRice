@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3]
+
+; Gold piece (coin). Unity prefab applied scale=70 to the GameObject directly
+; (rather than letting the FBX importer scale), so we preserve that here:
+; Model scale 70x, BoxShape3D size = 70 * 0.00316 native = 0.22.
+
+[ext_resource type="Script" path="res://scripts/data/GoldPiece.cs" id="1"]
+[ext_resource type="PackedScene" path="res://models/gold/gold.fbx" id="2"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gold"]
+size = Vector3(0.22, 0.22, 0.22)
+
+[node name="GoldPiece" type="RigidBody3D"]
+script = ExtResource("1")
+mass = 100.0
+angular_damp = 0.05
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_gold")
+
+[node name="Model" parent="." instance=ExtResource("2")]
+scale = Vector3(70, 70, 70)

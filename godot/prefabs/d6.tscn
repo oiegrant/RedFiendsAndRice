@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+; Multi-die (1-6 face values). Unity: Rigidbody mass=100, angularDamping=0.05,
+; BoxCollider size=0.0064 native. The Model is scaled 100x to match Unity's
+; FBX-importer auto-scale behavior; BoxShape3D matches the scaled-up collider.
+; Tune both in the editor if the die looks too big/small at runtime.
+
+[ext_resource type="Script" path="res://scripts/data/MultiDie.cs" id="1"]
+[ext_resource type="PackedScene" path="res://models/d6/d6v2.fbx" id="2"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_d6"]
+size = Vector3(0.64, 0.64, 0.64)
+
+[node name="MultiDie" type="RigidBody3D"]
+script = ExtResource("1")
+mass = 100.0
+angular_damp = 0.05
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_d6")
+
+[node name="Model" parent="." instance=ExtResource("2")]
+scale = Vector3(100, 100, 100)

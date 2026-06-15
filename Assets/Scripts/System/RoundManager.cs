@@ -106,12 +106,12 @@ namespace System
             result.victory = roundVictory;
             result.endingCoins = currentGold;
 
-            //Clean up dice
+            //Clean up dice — fire all in parallel so they animate simultaneously, no need to wait for completion here
             for (int i = 0; i < diceSet.abilityDice.Count; i++)
             {
-                ResetAbilityDie(diceSet.abilityDice[i]);
+                StartCoroutine(ResetAbilityDie(diceSet.abilityDice[i]));
             }
-            ResetMultiDie();
+            StartCoroutine(ResetMultiDie());
             
             CleanUpRoundManager();
 
@@ -246,7 +246,6 @@ namespace System
                      isProcessingRound = false;
                      break;
                  }
-                
                 //TODO display next enemy action in display bar
                 if (enemySpecialThisRound)
                 {
@@ -261,18 +260,22 @@ namespace System
                     }
                     else
                     {
-                        GameObject copyOfCurrentEnemyAbility = Instantiate(UIManager.Instance.singleDamageTypeImage.gameObject, UIManager.Instance.singleDamageTypeImage.gameObject.transform.parent);
-                        Image copiedImage = copyOfCurrentEnemyAbility.GetComponent<Image>();
-                        copiedImage.transform.position += Vector3.up * 2f;
-                        yield return StartCoroutine(AnimateSingleEnemyAttackHit(copiedImage));
-                        StartCoroutine(fadeOutDisintegrate(copiedImage));
-                        Destroy(copyOfCurrentEnemyAbility);
-                        EnemyAttackAction(currentPhysicalAttackDamage, 0);
+                        // Debug.Log("TEST ENEMY ANIMATION LOGS");        
+                        // GameObject copyOfCurrentEnemyAbility = Instantiate(UIManager.Instance.singleDamageTypeImage.gameObject, UIManager.Instance.singleDamageTypeImage.gameObject.transform.parent);
+                        // Image copiedImage = copyOfCurrentEnemyAbility.GetComponent<Image>();
+                        // copiedImage.transform.position += Vector3.up * 2f;
+                        // yield return StartCoroutine(AnimateSingleEnemyAttackHit(copiedImage));
+                        // yield return StartCoroutine(fadeOutDisintegrate(copiedImage));
+                        // Destroy(copyOfCurrentEnemyAbility);
+                        // EnemyAttackAction(currentPhysicalAttackDamage, 0);
                     }
                 }
 
-                ResetAbilityDie(abilityDie); //TODO this needs to be a coroutine so that you can't roll before dice return to rest
-                ResetMultiDie();
+                // Start both reset animations in parallel, then wait for both to finish
+                Coroutine resetAbility = StartCoroutine(ResetAbilityDie(abilityDie));
+                Coroutine resetMulti = StartCoroutine(ResetMultiDie());
+                yield return resetAbility;
+                yield return resetMulti;
 
                 // yield return new WaitForSeconds(1f);
 
@@ -293,8 +296,7 @@ namespace System
 
         private IEnumerator fadeOutDisintegrate(Image copiedImage)
         {
-            copiedImage.DOFade(0f, 0.6f).SetEase(Ease.OutCubic);
-            yield return new WaitForSeconds(0.4f);
+            yield return copiedImage.DOFade(0f, 0.6f).SetEase(Ease.OutCubic).WaitForCompletion();
         }
 
         private void cleanUpCopiedImage(Image copiedImage)
@@ -306,9 +308,11 @@ namespace System
         private IEnumerator moveEnemyAttackAbilityToPlayer(Image copiedImage)
         { 
             copiedImage.rectTransform.DOMove(playerHealthLocation.position, 0.2f)
-                .SetEase(Ease.InOutQuad);
+                .SetEase(Ease.InOutQuad)
+                .SetLink(copiedImage.gameObject);
             copiedImage.rectTransform.DORotate(new Vector3(0, 0, 225), 0.2f)
-                .SetEase(Ease.InOutQuad);
+                .SetEase(Ease.InOutQuad)
+                .SetLink(copiedImage.gameObject);
     
             yield return new WaitForSeconds(0.2f);
         }
@@ -718,16 +722,16 @@ namespace System
         }
         
         [Header("Dice Reset Animation")]
-        [SerializeField] private float jumpPower = 1.5f;
-        [SerializeField] private int jumpCount = 1;
-        [SerializeField] private float jumpDuration = 5f;
-        [SerializeField] private float delayBetweenDice = 0.1f;
+        private float jumpPower = 1.5f;
+        private int jumpCount = 1;
+        private float jumpDuration = 0.5f;
+        private float delayBetweenDice = 0.04f;
         
-        [SerializeField] private Ease jumpEase = Ease.OutCubic;
+        private Ease jumpEase = Ease.OutCubic;
         
         
         
-        private void ResetMultiDie()
+        private IEnumerator ResetMultiDie()
         {
             // Kill any existing tweens on these dice
             foreach (var die in diceSet.multiDice)
@@ -735,94 +739,60 @@ namespace System
                 die.transform.DOKill();
             }
 
-            // Step 1: All dice jump up (with stagger)
-            for (int i = 0; i < diceSet.multiDice.Count; i++)
-            {
-                MultiDie curr = diceSet.multiDice[i];
-                float jumpDelay = i * delayBetweenDice;
-                curr.rb.isKinematic = true;
+            // Preserve original staggered timing:
+            //   - Die i jumps at jumpStartTime = i * delayBetweenDice
+            //   - All dice begin moving + rotating together once the slowest jump has landed
+            float allJumpsEndTime = (diceSet.multiDice.Count - 1) * delayBetweenDice + jumpDuration;
+            float moveStartTime = allJumpsEndTime + delayBetweenDice;
 
-                curr.transform.DOJump(
-                        curr.transform.position + Vector3.up * 2,
-                        jumpPower,
-                        jumpCount,
-                        jumpDuration
-                    )
-                    .SetDelay(jumpDelay)
-                    .SetEase(jumpEase)
-                    .SetAutoKill(true);
-            }
+            Sequence seq = DOTween.Sequence();
 
-            // Step 3: All dice move to final position and rotate (with stagger)
-            float totalJumpTime = (diceSet.multiDice.Count - 1) * delayBetweenDice + jumpDuration;
-            float moveStartTime = totalJumpTime + 0f;
-    
             for (int i = 0; i < diceSet.multiDice.Count; i++)
             {
                 MultiDie curr = diceSet.multiDice[i];
                 Transform finalPosition = multiDiceSpawnPoints[i];
-                float moveDelay = moveStartTime + delayBetweenDice;
+                curr.rb.isKinematic = true;
 
-                curr.transform.DOMove(
-                        finalPosition.position,
-                        jumpDuration
-                    )
-                    .SetDelay(moveDelay)
-                    .SetEase(jumpEase)
-                    .SetAutoKill(true);
+                float jumpStartTime = i * delayBetweenDice;
 
-                curr.transform.DORotateQuaternion(
-                        Quaternion.Euler(270, 0, 0),
-                        jumpDuration
-                    )
-                    .SetDelay(moveDelay)
-                    .SetEase(jumpEase)
-                    .SetAutoKill(true);
+                seq.Insert(jumpStartTime, curr.transform
+                    .DOJump(curr.transform.position + Vector3.up * 2, jumpPower, jumpCount, jumpDuration)
+                    .SetEase(jumpEase));
+
+                seq.Insert(moveStartTime, curr.transform
+                    .DOMove(finalPosition.position, jumpDuration)
+                    .SetEase(jumpEase));
+
+                seq.Insert(moveStartTime, curr.transform
+                    .DORotateQuaternion(Quaternion.Euler(270, 0, 0), jumpDuration)
+                    .SetEase(jumpEase));
             }
+
+            yield return seq.WaitForCompletion();
         }
         
-        private void ResetAbilityDie(AbilityDie abilityDie)
+        private IEnumerator ResetAbilityDie(AbilityDie abilityDie)
         {
             // Kill any existing tweens on this die
             abilityDie.transform.DOKill();
-    
-            abilityDie.rb.isKinematic = true;
-            float jumpDelay = delayBetweenDice;
-            Transform finalPosition = abilityDiceSpawnPoints[0];
-    
-            // Step 1: Jump up
-            abilityDie.transform.DOJump(
-                    abilityDie.transform.position + Vector3.up * 2,
-                    jumpPower,
-                    jumpCount,
-                    jumpDuration
-                )
-                .SetDelay(jumpDelay)
-                .SetEase(jumpEase)
-                .SetAutoKill(true);
-    
-            // Step 2: Calculate timing
-            float totalJumpTime = jumpDuration;
-            float moveStartTime = totalJumpTime + 0f;
-            float moveDelay = moveStartTime + jumpDelay;
-    
-            // Step 3: Move to final position
-            abilityDie.transform.DOMove(
-                    finalPosition.position,
-                    jumpDuration
-                )
-                .SetDelay(moveDelay)
-                .SetEase(jumpEase)
-                .SetAutoKill(true);
 
-            // Step 3: Rotate to identity
-            abilityDie.transform.DORotateQuaternion(
-                    Quaternion.identity,
-                    jumpDuration
-                )
-                .SetDelay(moveDelay)
-                .SetEase(jumpEase)
-                .SetAutoKill(true);
+            abilityDie.rb.isKinematic = true;
+            Transform finalPosition = abilityDiceSpawnPoints[0];
+            Vector3 jumpTarget = abilityDie.transform.position + Vector3.up * 2;
+
+            Sequence seq = DOTween.Sequence()
+                .AppendInterval(delayBetweenDice)
+                .Append(abilityDie.transform
+                    .DOJump(jumpTarget, jumpPower, jumpCount, jumpDuration)
+                    .SetEase(jumpEase))
+                .Append(abilityDie.transform
+                    .DOMove(finalPosition.position, jumpDuration)
+                    .SetEase(jumpEase))
+                .Join(abilityDie.transform
+                    .DORotateQuaternion(Quaternion.identity, jumpDuration)
+                    .SetEase(jumpEase));
+
+            yield return seq.WaitForCompletion();
         }
 
         public void Initialize(Transform goldSpawnPoint, GoldPiece goldPiecePrefab, Transform[] multiDiceSpawnPoints, Transform[] abilityDiceSpawnPoints, GameObject outlines, Transform outlineSpawnPoint, Transform sumUpLocation, Transform enemyHitLocation, EnemyData currentEnemyData, Transform playerHealthLocation)

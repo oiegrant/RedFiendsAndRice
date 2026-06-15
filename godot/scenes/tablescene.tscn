@@ -1,0 +1,162 @@
+[gd_scene format=3 uid="uid://cot2q50jum5df"]
+
+[ext_resource type="PackedScene" uid="uid://cwtvojmm8rgaw" path="res://models/rollarea/rollarea.fbx" id="1_6tirf"]
+[ext_resource type="PackedScene" uid="uid://hy5y4p3m8lpa" path="res://models/machine/button.fbx" id="2_u8k7e"]
+[ext_resource type="PackedScene" uid="uid://duua7r0umfek1" path="res://models/machine/buttoncase.fbx" id="3_f62ye"]
+[ext_resource type="PackedScene" uid="uid://bllalubm0ukij" path="res://models/machine/gasnozzle.fbx" id="4_1nf2m"]
+[ext_resource type="PackedScene" uid="uid://w7ia8lxddwgt" path="res://models/machine/machinebase.fbx" id="5_v8vvq"]
+[ext_resource type="PackedScene" uid="uid://cqx1rjxp0wu82" path="res://models/machine/pressuregauge.fbx" id="6_knh40"]
+[ext_resource type="PackedScene" uid="uid://bvt55elxm1pev" path="res://models/machine/ticketdispenser.fbx" id="7_qflp5"]
+[ext_resource type="PackedScene" uid="uid://tbr8qo4vjeyc" path="res://models/screens/attackzonescreen.fbx" id="8_eeokm"]
+[ext_resource type="PackedScene" uid="uid://cepyfrveeeqmn" path="res://models/screens/healthbar.fbx" id="9_8k1k3"]
+[ext_resource type="PackedScene" path="res://prefabs/d6.tscn" id="10_nx3nk"]
+[ext_resource type="PackedScene" path="res://prefabs/d6ability.tscn" id="11_m73ri"]
+[ext_resource type="PackedScene" uid="uid://b33j2xdth10vw" path="res://models/table/tabletop.fbx" id="12_1nf2m"]
+[ext_resource type="PackedScene" uid="uid://cpg6nkbamhjcc" path="res://models/upgrades/memorycard.fbx" id="13_v8vvq"]
+[ext_resource type="PackedScene" uid="uid://bnyf3pkt35yll" path="res://models/upgrades/scrip.fbx" id="14_knh40"]
+
+[node name="MainScene" type="Node3D" unique_id=1107256891]
+
+[node name="SpawnPositions" type="Node3D" parent="." unique_id=1478745185]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.22052, 0.15585, -0.67694)
+
+[node name="m8" type="Node3D" parent="SpawnPositions" unique_id=1171877171]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.094759, 0.5014778, 4.1441784)
+
+[node name="m5" type="Node3D" parent="SpawnPositions" unique_id=877959379]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.1264896, 0.5014778, -1.8557386)
+
+[node name="a5" type="Node3D" parent="SpawnPositions" unique_id=1367310430]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.884681, 0.26047784, 2.6483345)
+
+[node name="m7" type="Node3D" parent="SpawnPositions" unique_id=2068841692]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.131778, 0.5014778, -2.8557243)
+
+[node name="m2" type="Node3D" parent="SpawnPositions" unique_id=805562504]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.110625, 0.5014778, 1.1442196)
+
+[node name="a4" type="Node3D" parent="SpawnPositions" unique_id=1806151617]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.905835, 0.26047784, -1.3516097)
+
+[node name="m4" type="Node3D" parent="SpawnPositions" unique_id=1694256858]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.105337, 0.5014778, 2.144206)
+
+[node name="m6" type="Node3D" parent="SpawnPositions" unique_id=555275649]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.100048, 0.5014778, 3.1441915)
+
+[node name="a1" type="Node3D" parent="SpawnPositions" unique_id=694418712]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.895259, 0.26047784, 0.64836216)
+
+[node name="m9" type="Node3D" parent="SpawnPositions" unique_id=247569360]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.137066, 0.5014778, -3.85571)
+
+[node name="a2" type="Node3D" parent="SpawnPositions" unique_id=328495689]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.900547, 0.26047784, -0.3516242)
+
+[node name="m1" type="Node3D" parent="SpawnPositions" unique_id=139928313]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.1159134, 0.5014778, 0.14423352)
+
+[node name="m10" type="Node3D" parent="SpawnPositions" unique_id=562080161]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.089472, 0.5014778, 5.1441636)
+
+[node name="a3" type="Node3D" parent="SpawnPositions" unique_id=202646941]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.889969, 0.26047784, 1.6483481)
+
+[node name="gold" type="Node3D" parent="SpawnPositions" unique_id=279203117]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -2.9850302, -0.07752216, 1.2509805)
+
+[node name="m3" type="Node3D" parent="SpawnPositions" unique_id=204845300]
+transform = Transform3D(-0.99931943, 0, 0.03688804, 0, 1, 0, -0.03688804, 0, -0.99931943, -5.121201, 0.5014778, -0.8557525)
+
+[node name="outlinespawn" type="Node3D" parent="." unique_id=1856514157]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.65, 2.04, 2.46)
+
+[node name="playerHealthLocation" type="Node3D" parent="." unique_id=1066066161]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.773, 1.815, 3.29)
+
+[node name="UI" type="Node3D" parent="." unique_id=488128398]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.26192, 0.15642, -2.29956)
+
+[node name="enemyScreen" type="Node3D" parent="UI" unique_id=496273962]
+
+[node name="statics" type="Node3D" parent="." unique_id=1207873303]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.1924, 0.53327, -3.59172)
+
+[node name="goldcolliders" type="Node3D" parent="statics" unique_id=1037679911]
+
+[node name="Quad_(3)" type="Node3D" parent="statics/goldcolliders" unique_id=1402751878]
+transform = Transform3D(5.2453675e-08, -8.742277e-08, 1, -1.04907336e-07, 1, 8.742278e-08, -1.2, -8.7422784e-08, 4.371139e-08, 3.367, 1.749, -2.207)
+
+[node name="Managers#LevelManager" type="Node3D" parent="." unique_id=863277276]
+
+[node name="Managers_LevelManager#sumuplocation" type="Node3D" parent="." unique_id=1176245985]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8698, 0.24289, 2.57506)
+
+[node name="Managers#UIManager" type="Node3D" parent="." unique_id=1030262575]
+
+[node name="Managers#GameManager" type="Node3D" parent="." unique_id=49193543]
+
+[node name="AttackAnimations" type="Node3D" parent="." unique_id=361417988]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.01243, 1.05947, 5.45223)
+
+[node name="enemyStrikeLocation" type="Node3D" parent="." unique_id=236036557]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.69, 1.175, 2.78)
+
+[node name="sumuplocation" type="Node3D" parent="." unique_id=2087221808]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.36, 2.601, -3.29)
+
+[node name="CameraLighting" type="Node3D" parent="." unique_id=1765847230]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1e-05, 0, 0)
+
+[node name="Main_Camera" type="Camera3D" parent="CameraLighting" unique_id=1545005113]
+transform = Transform3D(-2.4428548e-08, -0.829262, 0.55886006, -3.6248196e-08, 0.55886006, 0.829262, -1, -1.7763568e-15, -4.3711392e-08, 5.6129494, 7.42785, 1.8468205)
+
+[node name="Global_Volume" type="Node3D" parent="CameraLighting" unique_id=1669998471]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1e-05, 0, 0)
+
+[node name="Directional_Light_(1)" type="DirectionalLight3D" parent="CameraLighting" unique_id=1699872971]
+transform = Transform3D(-0.7727336, -0.5743213, 0.27025503, 3.7222797e-08, 0.42577916, 0.9048271, -0.63473046, 0.6991903, -0.32901385, -1e-05, 3, 0)
+
+[node name="Prefab_scrip" type="Node3D" parent="." unique_id=1687329127]
+
+[node name="rollarea" parent="." unique_id=1332335803 instance=ExtResource("1_6tirf")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, -0.6508217, 0, 0.07154524)
+
+[node name="button" parent="." unique_id=133480763 instance=ExtResource("2_u8k7e")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, 4.5429544, 0.68907, 5.0276966)
+
+[node name="buttoncase" parent="." unique_id=700745175 instance=ExtResource("3_f62ye")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, 4.54279, 0.5711467, 5.027959)
+
+[node name="gasnozzle" parent="." unique_id=1539277330 instance=ExtResource("4_1nf2m")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, -4.6210685, 3.9181237, 15.153531)
+
+[node name="machinebase2" parent="." unique_id=2114996349 instance=ExtResource("5_v8vvq")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, 3.2428386, 0, 2.4036417)
+
+[node name="pressuregauge" parent="." unique_id=1379654880 instance=ExtResource("6_knh40")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, -5.2019167, 0, 12.427214)
+
+[node name="ticketdispenser" parent="." unique_id=1700943474 instance=ExtResource("7_qflp5")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, -0.8813772, -4.7683716e-07, 11.385711)
+
+[node name="attackzonescreen" parent="." unique_id=148791302 instance=ExtResource("8_eeokm")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, -6.176717, 2.3383207, 9.765431)
+
+[node name="healthbar" parent="." unique_id=1324264139 instance=ExtResource("9_8k1k3")]
+transform = Transform3D(300, 0, 0, 0, -1.7484555e-05, 150, 0, -400, -6.5567083e-06, -1.4454303, 0.5365088, 15.657806)
+
+[node name="MultiDie" parent="." unique_id=1915585853 instance=ExtResource("10_nx3nk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.800152, 0, -2.34347)
+
+[node name="AbilityDie" parent="." unique_id=891799905 instance=ExtResource("11_m73ri")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7350903, 0.7960813, 0.0067727566)
+
+[node name="tabletop" parent="." unique_id=1610500182 instance=ExtResource("12_1nf2m")]
+transform = Transform3D(3000, 0, 0, 0, -0.00013113416, 3000, 0, -3000, -0.00013113416, -13.164093, -0.4650321, 3.620288)
+
+[node name="memorycard" parent="." unique_id=1444513219 instance=ExtResource("13_v8vvq")]
+transform = Transform3D(100, 0, 0, 0, -4.371139e-06, 100, 0, -100, -4.371139e-06, 5.4621825, 0.26014185, 9.139066)
+
+[node name="scrip" parent="." unique_id=376921842 instance=ExtResource("14_knh40")]
+transform = Transform3D(100, 0, 0, 0, -4.3711393e-06, 100.00001, 0, -100.00001, -4.3711393e-06, 7.0903435, 1.7308002, 15.304109)

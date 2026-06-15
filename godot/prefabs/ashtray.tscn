@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://b5agim81jrktf"]
+
+[ext_resource type="PackedScene" uid="uid://brxcn7dnpcyif" path="res://models/accessories/ashtray.fbx" id="1"]
+
+[node name="Ashtray" type="Node3D" unique_id=1449121578]
+transform = Transform3D(100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0)
+
+[node name="Model" parent="." unique_id=2110604092 instance=ExtResource("1")]
