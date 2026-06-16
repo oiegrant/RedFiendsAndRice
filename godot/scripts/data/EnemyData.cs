@@ -2,19 +2,19 @@ namespace RedFiendsAndRice.Data;
 
 public struct EnemyDataLoader
 {
-    public EnemyData[] Data;
+    public EnemyData[] data;
 }
 
 public struct EnemyData
 {
-    public string EnemyName;
-    public int MaxHealth;
-    public int CurrentHealth;
-    public int MaxShield;
-    public int CurrentShield;
-    public int StartingPhysicalDamage;
-    public int StartingMagicDamage;
-    public bool IsBaseDamageIncrements;
-    public int BasePhysicalDamageIncrement;
-    public int BaseMagicDamageIncrement;
+    public string enemyName;
+    public int maxHealth;
+    public int currentHealth;
+    public int maxShield;
+    public int currentShield;
+    public int startingPhysicalDamage;
+    public int startingMagicDamage;
+    public bool isBaseDamageIncrements;
+    public int basePhysicalDamageIncrement;
+    public int baseMagicDamageIncrement;
 }

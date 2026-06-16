@@ -4,8 +4,8 @@ namespace RedFiendsAndRice.Data;
 // (Unity's pattern compiles but is non-idiomatic). Behavior is identical.
 public static class MetaUpgradeData
 {
-    public static int StartingAbilityDieCount = 1;
-    public static int StartingMultiDiceCount = 4;
+    public static int StartingAbilityDieCount = 5;
+    public static int StartingMultiDiceCount = 10;
     public static float Crit7 = 1.5f;
     public static float Crit11 = 3f;
     public static int PlayerMaxHealth = 100;

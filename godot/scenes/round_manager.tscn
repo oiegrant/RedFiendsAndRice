@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://3khs8fjd3370"]
+
+[ext_resource type="Script" uid="uid://cbwtpm8cxa6op" path="res://scripts/system/RoundManager.cs" id="1_d0bj1"]
+
+[node name="RoundManager" type="Node3D" unique_id=293988358]
+script = ExtResource("1_d0bj1")

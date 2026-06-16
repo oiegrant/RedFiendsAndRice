@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://fea4pnvped3s"]
+
+[ext_resource type="Script" uid="uid://cfht13jj7tvai" path="res://scripts/system/LevelManager.cs" id="1_2yrkd"]
+[ext_resource type="PackedScene" path="res://prefabs/d6.tscn" id="2_kfnik"]
+[ext_resource type="PackedScene" path="res://prefabs/d6ability.tscn" id="3_dpnu2"]
+[ext_resource type="PackedScene" path="res://prefabs/gold.tscn" id="4_6dptc"]
+[ext_resource type="Script" uid="uid://cbwtpm8cxa6op" path="res://scripts/system/RoundManager.cs" id="5_kfnik"]
+
+[sub_resource type="PackedScene" id="PackedScene_dpnu2"]
+_bundled = {
+"conn_count": 0,
+"conns": PackedInt32Array(),
+"editable_instances": [],
+"id_paths": [],
+"names": PackedStringArray("RoundManager", "Node3D", "script"),
+"node_count": 1,
+"node_ids": PackedInt32Array(1363044450),
+"node_paths": [],
+"nodes": PackedInt32Array(-1, -1, 1, 0, -1, 1, 2, 0, 0),
+"variants": [ExtResource("5_kfnik")],
+"version": 3
+}
+
+[node name="LevelManager" type="Node3D" unique_id=1896958617 node_paths=PackedStringArray("AbilityDiceSpawnPoints", "MultiDiceSpawnPoints", "GoldSpawnPoint", "OutlineSpawnPoint")]
+script = ExtResource("1_2yrkd")
+MultiDieScene = ExtResource("2_kfnik")
+AbilityDieScene = ExtResource("3_dpnu2")
+GoldPieceScene = ExtResource("4_6dptc")
+RoundManagerScene = SubResource("PackedScene_dpnu2")
+AbilityDiceSpawnPoints = [NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath("")]
+MultiDiceSpawnPoints = [NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath("")]
+GoldSpawnPoint = NodePath("")
+OutlineSpawnPoint = NodePath("")

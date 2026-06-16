@@ -1,9 +1,0 @@
-[gd_scene format=3 uid="uid://c11q8gmwydfde"]
-
-[ext_resource type="PackedScene" uid="uid://dws107ur0konu" path="res://models/rollarea/rollarea_v2.fbx" id="1_enpjr"]
-[ext_resource type="Material" uid="uid://c6oxl0tdwn5se" path="res://models/rollarea/roll_area_v2.tres" id="2_jjj0m"]
-
-[node name="rollarea_v2" unique_id=1194085935 instance=ExtResource("1_enpjr")]
-
-[node name="rollarea" parent="." index="0" unique_id=563562774]
-material_override = ExtResource("2_jjj0m")

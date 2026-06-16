@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b5ewi2h44s8jt"]
+
+[ext_resource type="PackedScene" uid="uid://bk0wrjkcq3w04" path="res://models/d6/d6v2.fbx" id="1_ftcbg"]
+
+[node name="d6v2" unique_id=1942701964 instance=ExtResource("1_ftcbg")]
+transform = Transform3D(100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0)
